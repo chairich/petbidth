@@ -128,14 +128,13 @@ const FooterOne = () => {
 									/>
 								</Link>
 								<p>
-									It is crafted with the latest trend of design &amp; coded with
-									all modern approaches.
+									แพลตฟอร์มแห่งความหวัง...ที่ซึ่งปีกแห่งรักโบยบินสู่บ้านใหม่.
 								</p>
 								<p className="mb-0">
-									Call: +123 456 789 <br /> Email: help@example.com
+									โทร: 091 7030 732 <br /> อีเมล: tadadon2507@gmail.com
 								</p>
 
-								<h5 className="mt-4 mb-3">Join the community</h5>
+								<h5 className="mt-4 mb-3">เข้าร่วมชุมชนเรา</h5>
                 
 								<div className="footer-social-icon d-flex align-items-center flex-wrap">
 									<a
@@ -235,11 +234,11 @@ const FooterOne = () => {
 							<p className="mb-0">
 								{new Date().getFullYear()} &copy; All rights reserved by{" "}
 								<a
-									href="https://themeforest.net/user/rk_theme/portfolio"
+									href="http://www.petbidthai.com"
 									target="_blank"
-									rel="noreferrer"
+									rel="petBIDthai.com"
 								>
-									rk_theme
+									petBIDthai.com
 								</a>
 							</p>
 						</div>

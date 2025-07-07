@@ -6,65 +6,80 @@ const TermsArea = () => {
 			<div className="container">
 				<div className="row justify-content-center">
 					<div className="col-12 col-lg-10 col-xxl-8">
-						<h3>USE OF INFORMATION</h3>
+						<h3> ข้อกำหนดและเงื่อนไขการใช้งานเว็บไซต์ PetBidThai.com</h3>
 						<p>
-							For our Clients, we use personal information mainly to provide the
-							Services and contact our Clients regarding account activities, new
-							versions, and product offerings, or other communications relevant
-							to the Services. We do not sell or share any personally
-							identifiable or other information of End Users to any third
-							parties, except, of course, to the applicable Client whose website
-							you are using.
-						</p>
-						<p>
-							If you contact us by email or by filling out a registration form,
-							we may keep a record of your contact information and
-							correspondence and may use your email address, and any information
-							that you provide to us in your message, to respond to you. In
-							addition, we may use the personal information described above to
-							send you information regarding the Service. If you decide at any
-							time that you no longer wish to receive such information or
-							communications from us, email us at and request to be removed from
-							our list. The circumstances under which we may share such
-							information with third parties are described below in “Complying
-							with Legal Process”.
+							ยินดีต้อนรับสู่ PetBidThai.com! เว็บไซต์ของเราเป็นแพลตฟอร์มประมูลออนไลน์สำหรับสัตว์เลี้ยงหลากหลายชนิด เพื่อให้ผู้ที่รักสัตว์ได้ค้นหาและรับเลี้ยงสัตว์เลี้ยงที่ต้องการ โปรดอ่านข้อกำหนดและเงื่อนไขเหล่านี้อย่างละเอียดก่อนใช้งานเว็บไซต์ การเข้าถึงและใช้งาน PetBidThai.com ถือว่าท่านได้ยอมรับและผูกพันตามข้อกำหนดและเงื่อนไขทั้งหมดที่ระบุไว้
+
 						</p>
 						<div className="mb-5"></div>
-						<h3>STORAGE AND SECURITY OF INFORMATION</h3>
+						<h3>1. คำนิยาม</h3>
 						<p>
-							Its operates secure data networks protected by industry-standard
-							firewalls and password protection systems. Our security and
-							privacy policies are periodically reviewed and enhanced as
-							necessary, and only authorized individuals have access to the
-							information provided by our Clients.
+							* **"เว็บไซต์"** หรือ **"PetBidThai.com"** หมายถึง แพลตฟอร์มออนไลน์สำหรับประมูลสัตว์เลี้ยง
+* **"ผู้ใช้งาน"** หมายถึง บุคคลใดๆ ที่เข้าถึงหรือใช้งานเว็บไซต์ ไม่ว่าจะเป็นผู้เสนอราคา (ผู้ประมูล) หรือผู้ลงประกาศขาย (ผู้ขาย)
+* **"สัตว์เลี้ยง"** หมายถึง สัตว์ที่ถูกนำมาประมูลบนเว็บไซต์ รวมถึงแต่ไม่จำกัดเพียง นก สุนัข แมว ปลา หรือสัตว์เลี้ยงประเภทอื่นๆ ที่ได้รับอนุญาต
+* **"ผู้ขาย"** หมายถึง ผู้ใช้งานที่ลงประกาศประมูลสัตว์เลี้ยงบนเว็บไซต์
+* **"ผู้ประมูล"** หมายถึง ผู้ใช้งานที่เข้าร่วมเสนอราคาประมูลสัตว์เลี้ยง
+* **"การประมูล"** หมายถึง กระบวนการเสนอราคาเพื่อซื้อสัตว์เลี้ยงที่ลงประกาศขายบนเว็บไซต์
 						</p>
 						<div className="mb-5"></div>
-						<h3>PERSONALLY IDENTIFIABLE INFORMATION</h3>
+						<h3>2. การยอมรับข้อกำหนดและเงื่อนไข</h3>
 						<p>
-							If you are a Client, when you register with us via our Website, we
-							will ask you for some personally identifiable information, such as
-							your first and last name, company name, email address, billing
-							address, and credit card information. You may review and update
-							this personally identifiable information in your profile by
-							logging in and editing such information on your dashboard. If you
-							decide to delete all of your information, we may cancel your
-							account. We may retain an archived copy of your records as
-							required by law or for reasonable business purposes.
+							การเข้าถึง การเรียกดู หรือการใช้งานเว็บไซต์ ถือว่าท่านได้อ่าน ทำความเข้าใจ และตกลงที่จะปฏิบัติตามข้อกำหนดและเงื่อนไขเหล่านี้ รวมถึงนโยบายความเป็นส่วนตัวของเรา หากท่านไม่เห็นด้วยกับข้อกำหนดและเงื่อนไขใดๆ โปรดอย่าใช้งานเว็บไซต์
+
 						</p>
+						<h3>3. การลงทะเบียนบัญชีผู้ใช้งาน</h3>
 						<p>
-							Due to the nature of the Service, except to assist Clients with
-							certain limited technical problems or as otherwise legally
-							compelled, we will not access any of the Content that you upload
-							to the Service.
+							* ผู้ใช้งานต้องมีอายุ 18 ปีบริบูรณ์ขึ้นไปจึงจะสามารถลงทะเบียนและใช้งานเว็บไซต์ได้
+* ผู้ใช้งานต้องให้ข้อมูลที่เป็นจริง ถูกต้อง ครบถ้วน และเป็นปัจจุบันในการลงทะเบียน
+* ผู้ใช้งานมีหน้าที่รับผิดชอบในการรักษาความลับของชื่อผู้ใช้งานและรหัสผ่านของตนเอง และรับผิดชอบต่อกิจกรรมทั้งหมดที่เกิดขึ้นภายใต้บัญชีของตน
+* PetBidThai.com ขอสงวนสิทธิ์ในการระงับหรือยกเลิกบัญชีผู้ใช้งานใดๆ ที่ให้ข้อมูลเท็จหรือไม่ถูกต้อง หรือฝ่าฝืนข้อกำหนดและเงื่อนไขนี้
 						</p>
+						<h3>4. กฎการประมูล</h3>
 						<p>
-							Some Personally Identifiable Information may also be provided to
-							intermediaries and third parties who assist us with the Service,
-							but who may make no use of any such information other than to
-							assist us in providing the Service. Except as otherwise provided
-							in this Privacy Policy, however, we will not rent or sell your
-							Personally Identifiable Information to third parties.
+							* **ความรับผิดชอบของผู้ประมูล:** ผู้ประมูลมีหน้าที่ตรวจสอบรายละเอียดของสัตว์เลี้ยงที่ประมูลอย่างละเอียด รวมถึงภาพถ่าย วิดีโอ และข้อมูลที่ผู้ขายให้ไว้ก่อนทำการเสนอราคา
+* **การเสนอราคา:** การเสนอราคาแต่ละครั้งถือเป็นการผูกมัด ผู้ประมูลไม่สามารถยกเลิกการเสนอราคาได้เมื่อได้ทำการเสนอราคาไปแล้ว
+* **ผู้ชนะการประมูล:** ผู้เสนอราคาสูงสุดเมื่อสิ้นสุดระยะเวลาการประมูลจะเป็นผู้ชนะการประมูล
+* **การชำระเงิน:** ผู้ชนะการประมูลต้องทำการชำระเงินตามจำนวนที่ประมูลได้ภายในระยะเวลาที่กำหนด ซึ่งโดยปกติจะแจ้งให้ทราบในรายละเอียดการประมูล หากไม่มีการชำระเงินตามกำหนด PetBidThai.com หรือผู้ขายมีสิทธิ์ที่จะยกเลิกการประมูลและนำสัตว์เลี้ยงกลับมาประมูลใหม่ หรือเสนอขายให้กับผู้เสนอราคารายถัดไป
+* **การจัดส่ง/รับมอบ:** รายละเอียดการจัดส่งหรือรับมอบสัตว์เลี้ยงจะตกลงกันระหว่างผู้ซื้อและผู้ขาย PetBidThai.com ไม่รับผิดชอบในการจัดส่งสัตว์เลี้ยง
+* **ข้อพิพาท:** PetBidThai.com ทำหน้าที่เป็นเพียงแพลตฟอร์มในการเชื่อมต่อเท่านั้น หากเกิดข้อพิพาทระหว่างผู้ซื้อและผู้ขาย ผู้ใช้งานจะต้องรับผิดชอบในการแก้ไขปัญหาและข้อพิพาทด้วยตนเอง
 						</p>
+						<h3>5. กฎสำหรับผู้ขาย</h3>
+						<p>* **การลงประกาศ:** ผู้ขายต้องลงประกาศขายสัตว์เลี้ยงด้วยข้อมูลที่ถูกต้อง ครบถ้วน และเป็นจริง รวมถึงรูปภาพและวิดีโอที่ตรงกับสภาพของสัตว์เลี้ยงจริง
+* **สุขภาพของสัตว์เลี้ยง:** ผู้ขายรับรองว่าสัตว์เลี้ยงที่นำมาประมูลมีสุขภาพแข็งแรง ไม่มีความเจ็บป่วยใดๆ เว้นแต่จะระบุไว้ชัดเจนในรายละเอียดการประมูล หากผู้ซื้อพบว่าสัตว์เลี้ยงมีปัญหาด้านสุขภาพที่ไม่ได้ระบุไว้ ผู้ขายจะต้องรับผิดชอบตามความเหมาะสม
+* **สิทธิ์ในการขาย:** ผู้ขายต้องมีสิทธิ์ตามกฎหมายในการขายสัตว์เลี้ยงที่ลงประกาศ
+* **การเก็บค่าธรรมเนียม:** PetBidThai.com อาจมีการเรียกเก็บค่าธรรมเนียมสำหรับการลงประกาศหรือการประมูลที่สำเร็จ ผู้ขายตกลงที่จะชำระค่าธรรมเนียมดังกล่าวตามที่ระบุไว้
+* **การยกเลิกการประมูล:** ผู้ขายไม่สามารถยกเลิกการประมูลได้เมื่อมีผู้เสนอราคาแล้ว เว้นแต่ในกรณีที่มีเหตุสุดวิสัยและได้รับอนุญาตจาก PetBidThai.com
+						</p>
+						<h3>6. ข้อจำกัดความรับผิดชอบ</h3>
+						<p>
+							* PetBidThai.com ทำหน้าที่เป็นเพียงแพลตฟอร์มกลางในการเชื่อมโยงผู้ซื้อและผู้ขาย เราไม่ได้มีส่วนเกี่ยวข้องโดยตรงในการทำธุรกรรมระหว่างผู้ใช้งาน
+* PetBidThai.com ไม่รับรองความถูกต้อง ครบถ้วน หรือคุณภาพของสัตว์เลี้ยงที่นำมาประมูล ผู้ใช้งานควรใช้ดุลยพินิจของตนเองในการตัดสินใจ
+* PetBidThai.com จะไม่รับผิดชอบต่อความเสียหาย การสูญเสีย หรือค่าใช้จ่ายใดๆ ที่เกิดขึ้นจากการใช้งานเว็บไซต์ หรือจากการทำธุรกรรมระหว่างผู้ใช้งาน
+* ผู้ใช้งานตกลงที่จะรับความเสี่ยงทั้งหมดที่เกี่ยวข้องกับการใช้งานเว็บไซต์และการทำธุรกรรมใดๆ ที่เกิดขึ้น
+
+						</p>
+						<h3>7. ข้อห้ามในการใช้งาน</h3>
+						<p>
+							ผู้ใช้งานตกลงที่จะไม่กระทำการดังต่อไปนี้:
+
+* โพสต์ข้อมูลหรือเนื้อหาที่ไม่เหมาะสม ผิดกฎหมาย เป็นการละเมิดสิทธิ์ หรือเป็นอันตราย
+* ใช้เว็บไซต์เพื่อวัตถุประสงค์ที่ไม่ชอบด้วยกฎหมาย
+* รบกวน ขัดขวาง หรือสร้างความเสียหายต่อการทำงานของเว็บไซต์
+* ปลอมแปลงตัวตน หรือให้ข้อมูลที่เป็นเท็จ
+* พยายามเข้าถึงระบบหรือข้อมูลที่ไม่ได้รับอนุญาต
+* เผยแพร่ไวรัส คอมพิวเตอร์โค้ด หรือโปรแกรมที่เป็นอันตราย
+						</p>
+						<h3>8. การเปลี่ยนแปลงข้อกำหนดและเงื่อนไข</h3>
+						<p>PetBidThai.com ขอสงวนสิทธิ์ในการแก้ไข หรือเปลี่ยนแปลงข้อกำหนดและเงื่อนไขเหล่านี้ได้ทุกเมื่อ การเปลี่ยนแปลงจะมีผลบังคับใช้ทันทีที่มีการเผยแพร่บนเว็บไซต์ การใช้งานเว็บไซต์อย่างต่อเนื่องของท่านถือเป็นการยอมรับการเปลี่ยนแปลงดังกล่าว
+
+						</p>
+						<h3>9. กฎหมายที่ใช้บังคับ</h3>
+						<p>ข้อกำหนดและเงื่อนไขเหล่านี้จะอยู่ภายใต้บังคับและตีความตามกฎหมายของประเทศไทย โดยไม่คำนึงถึงหลักการขัดกันแห่งกฎหมาย
+                        </p>
+						<h3>10. การติดต่อ</h3>
+						<p>หากท่านมีคำถามหรือข้อสงสัยเกี่ยวกับข้อกำหนดและเงื่อนไขเหล่านี้ โปรดติดต่อเราผ่านช่องทางที่ระบุบนเว็บไซต์
+                        </p>
+						<p>**การใช้งาน PetBidThai.com ของท่าน ถือว่าท่านได้อ่านและยอมรับข้อกำหนดและเงื่อนไขเหล่านี้โดยสมบูรณ์**</p>
 						<div className="mb-5"></div>
 						<div className="updated-info">
 							<p className="mb-0">Last updated Dec 31, {new Date().getFullYear()}</p>
