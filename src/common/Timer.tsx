@@ -1,19 +1,26 @@
+// Timer.tsx
 
-'use client';
+import React, { useEffect, useState } from 'react';
 
-import { useEffect, useState } from 'react';
-
-type TimerProps = {
+interface TimerProps {
   endTime: string | Date;
-};
+}
 
-const Timer = ({ endTime }: TimerProps) => {
+const MyTimer: React.FC<TimerProps> = ({ endTime }) => {
   const calculateTimeLeft = () => {
     const difference = +new Date(endTime) - +new Date();
     let timeLeft = {
-      minutes: Math.floor((difference / 1000 / 60) % 60),
-      seconds: Math.floor((difference / 1000) % 60),
+      minutes: 0,
+      seconds: 0
     };
+
+    if (difference > 0) {
+      timeLeft = {
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60)
+      };
+    }
+
     return timeLeft;
   };
 
@@ -23,15 +30,15 @@ const Timer = ({ endTime }: TimerProps) => {
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft());
     }, 1000);
+
     return () => clearInterval(timer);
   }, [endTime]);
 
   return (
-    <div className="timer">
-      <small>เหลือเวลา</small>
-      <strong>{timeLeft.minutes} นาที {timeLeft.seconds} วินาที</strong>
+    <div className="countdown-timer">
+      {timeLeft.minutes} นาที {timeLeft.seconds} วินาที
     </div>
   );
 };
 
-export default Timer;
+export default MyTimer;

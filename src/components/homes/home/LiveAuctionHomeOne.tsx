@@ -6,9 +6,8 @@ import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { createClient } from '@supabase/supabase-js';
 
-const MyTimer = dynamic(() => import('@/common/Timer').then(mod => mod.default), {
-  ssr: false,
-}) as React.FC<{ endTime: string | Date }>;
+const MyTimer = dynamic(() => import('@/common/Timer'), { ssr: false }) as React.FC<{ endTime: string | Date }>;
+
 
 // Supabase config
 const supabaseUrl = 'https://ykinhwdtvucjgryyjyvj.supabase.co';
