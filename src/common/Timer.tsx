@@ -1,27 +1,27 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-interface TimerProps {
+type MyTimerProps = {
   endTime: string;
-}
+};
 
-const MyTimer: React.FC<TimerProps> = ({ endTime }) => {
+const MyTimer = ({ endTime }: MyTimerProps) => {
   const calculateTimeLeft = () => {
     const difference = +new Date(endTime) - +new Date();
     let timeLeft = {
-      days: 0,
-      hours: 0,
-      minutes: 0,
-      seconds: 0,
+      days: '00',
+      hours: '00',
+      minutes: '00',
+      seconds: '00',
     };
 
     if (difference > 0) {
       timeLeft = {
-        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((difference / 1000 / 60) % 60),
-        seconds: Math.floor((difference / 1000) % 60),
+        days: String(Math.floor(difference / (1000 * 60 * 60 * 24))).padStart(2, '0'),
+        hours: String(Math.floor((difference / (1000 * 60 * 60)) % 24)).padStart(2, '0'),
+        minutes: String(Math.floor((difference / 1000 / 60) % 60)).padStart(2, '0'),
+        seconds: String(Math.floor((difference / 1000) % 60)).padStart(2, '0'),
       };
     }
 
@@ -40,10 +40,10 @@ const MyTimer: React.FC<TimerProps> = ({ endTime }) => {
 
   return (
     <div className="bid-ends">
-      <div><span>{timeLeft.days}</span><span>Days</span></div>
-      <div><span>{timeLeft.hours}</span><span>Hours</span></div>
-      <div><span>{timeLeft.minutes}</span><span>Min</span></div>
-      <div><span>{timeLeft.seconds}</span><span>Sec</span></div>
+      <div><span className="days">{timeLeft.days}</span><span>วัน</span></div>
+      <div><span className="hours">{timeLeft.hours}</span><span>ชม.</span></div>
+      <div><span className="minutes">{timeLeft.minutes}</span><span>นาที</span></div>
+      <div><span className="seconds">{timeLeft.seconds}</span><span>วิ</span></div>
     </div>
   );
 };
