@@ -1,12 +1,12 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-type MyTimerProps = {
+type TimerProps = {
   endTime: string;
 };
 
-const MyTimer = ({ endTime }: MyTimerProps) => {
+const MyTimer: React.FC<TimerProps> = ({ endTime }) => {
   const calculateTimeLeft = () => {
     const difference = +new Date(endTime) - +new Date();
     let timeLeft = {
@@ -40,10 +40,10 @@ const MyTimer = ({ endTime }: MyTimerProps) => {
 
   return (
     <div className="bid-ends">
-      <div><span className="days">{timeLeft.days}</span><span>วัน</span></div>
-      <div><span className="hours">{timeLeft.hours}</span><span>ชม.</span></div>
-      <div><span className="minutes">{timeLeft.minutes}</span><span>นาที</span></div>
-      <div><span className="seconds">{timeLeft.seconds}</span><span>วิ</span></div>
+      <div><span>{timeLeft.days}</span> วัน</div>
+      <div><span>{timeLeft.hours}</span> ชม.</div>
+      <div><span>{timeLeft.minutes}</span> นาที</div>
+      <div><span>{timeLeft.seconds}</span> วิ</div>
     </div>
   );
 };
