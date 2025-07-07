@@ -1,5 +1,3 @@
-// Timer.tsx
-
 import React, { useEffect, useState } from 'react';
 
 interface TimerProps {
@@ -9,15 +7,12 @@ interface TimerProps {
 const MyTimer: React.FC<TimerProps> = ({ endTime }) => {
   const calculateTimeLeft = () => {
     const difference = +new Date(endTime) - +new Date();
-    let timeLeft = {
-      minutes: 0,
-      seconds: 0
-    };
+    let timeLeft = { minutes: 0, seconds: 0 };
 
     if (difference > 0) {
       timeLeft = {
         minutes: Math.floor((difference / 1000 / 60) % 60),
-        seconds: Math.floor((difference / 1000) % 60)
+        seconds: Math.floor((difference / 1000) % 60),
       };
     }
 
