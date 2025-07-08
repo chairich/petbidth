@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = 'https://ykinhwdtvucjgryyjyvj.supabase.co';
@@ -8,7 +9,9 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const RegisterArea = () => {
+  const router = useRouter();
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
   const [memberType, setMemberType] = useState('general');
   const [formData, setFormData] = useState({
     email: '',
@@ -19,24 +22,6 @@ const RegisterArea = () => {
     password: '',
     memberType: 'general'
   });
-  const [session, setSession] = useState(null);
-
-  useEffect(() => {
-    const getSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-    };
-
-    getSession();
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => listener?.subscription.unsubscribe();
-  }, []);
-
-  const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -47,18 +32,32 @@ const RegisterArea = () => {
     const { email, password, username, fullname, phone, facebook, memberType } = formData;
 
     const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) return alert('เกิดข้อผิดพลาด: ' + error.message);
+    if (error) {
+      alert('เกิดข้อผิดพลาด: ' + error.message);
+      return;
+    }
 
-    await supabase.from('profiles').insert({
-      id: data.user?.id,
-      username,
-      fullname,
-      phone,
-      facebook,
-      member_type: memberType,
-    });
+    if (data.user?.id) {
+      const { error: insertError } = await supabase.from('profiles').insert({
+        id: data.user.id,
+        email,
+        username,
+        fullname,
+        phone,
+        facebook,
+        role: memberType,
+        created_at: new Date().toISOString(),
+      });
 
-    alert('สมัครสมาชิกเรียบร้อยแล้ว กรุณายืนยันอีเมลก่อนใช้งาน');
+      if (insertError) {
+        console.error('Insert error:', insertError.message);
+        alert('เกิดข้อผิดพลาดตอนบันทึกโปรไฟล์: ' + insertError.message);
+        return;
+      }
+
+      alert('สมัครสมาชิกเรียบร้อยแล้ว กรุณายืนยันอีเมลก่อนใช้งาน');
+      router.push('/login');
+    }
   };
 
   const handleFacebookLogin = async () => {
@@ -75,11 +74,7 @@ const RegisterArea = () => {
           <div className="col-12 col-md-6 col-xl-5">
             <div className="register-card">
               <h2>สมัครสมาชิก</h2>
-              <p>
-                หากมีบัญชีแล้ว
-                <Link className="ms-1 hover-primary" href="/login">เข้าสู่ระบบ</Link>
-              </p>
-
+              <p>หากมีบัญชีแล้ว <Link className="ms-1 hover-primary" href="/login">เข้าสู่ระบบ</Link></p>
               <div className="register-form mt-4">
                 <form onSubmit={handleSubmit}>
                   <div className="form-group mb-3">
@@ -96,9 +91,7 @@ const RegisterArea = () => {
                   </div>
                   <div className="form-group mb-3">
                     <input className="form-control" name="facebook" type="text" placeholder="Facebook (URL หรือชื่อ)" required onChange={handleChange} />
-                    <button type="button" onClick={handleFacebookLogin} className="btn btn-outline-primary btn-sm mt-2">
-                      สมัครผ่าน Facebook
-                    </button>
+                    <button type="button" onClick={handleFacebookLogin} className="btn btn-outline-primary btn-sm mt-2">สมัครผ่าน Facebook</button>
                   </div>
                   <div className="form-group mb-3">
                     <label className="label-psswd" htmlFor="registerPassword" onClick={togglePasswordVisibility}>
@@ -106,7 +99,6 @@ const RegisterArea = () => {
                     </label>
                     <input className="form-control" name="password" id="registerPassword" type={passwordVisible ? 'text' : 'password'} placeholder="รหัสผ่าน" required onChange={handleChange} />
                   </div>
-
                   <div className="form-group mb-3">
                     <label>เลือกประเภทสมาชิก:</label>
                     <select className="form-control mt-1" name="memberType" value={memberType} onChange={(e) => {
@@ -118,20 +110,17 @@ const RegisterArea = () => {
                       <option value="admin" disabled>แอดมิน (เพิ่มโดยทีมงาน)</option>
                     </select>
                   </div>
-
                   <div className="form-check mb-3">
                     <input className="form-check-input" id="agree" type="checkbox" required />
                     <label className="form-check-label" htmlFor="agree">
                       ฉันยอมรับ <Link href="/terms" className="text-decoration-underline">เงื่อนไขการใช้งาน</Link>
                     </label>
                   </div>
-
                   <button className="btn btn-primary w-100" type="submit">สมัครสมาชิก</button>
                 </form>
               </div>
             </div>
           </div>
-
           <div className="col-12 col-md-6">
             <div className="register-thumbnail mt-5 mt-md-0">
               <img src="/assets/img/illustrator/4.png" alt="" />
