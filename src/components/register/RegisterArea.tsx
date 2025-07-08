@@ -2,7 +2,6 @@
 import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import type { Session } from '@supabase/supabase-js';
 
 const supabaseUrl = 'https://ykinhwdtvucjgryyjyvj.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlraW5od2R0dnVjamdyeXlqeXZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE1MzI0NTgsImV4cCI6MjA2NzEwODQ1OH0.MFPNlMFkXroHaCUvtkPk5ZUAUB9ElcQ-Aq9jqdqxh3k';
@@ -10,11 +9,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const RegisterArea = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
-
   const [memberType, setMemberType] = useState('general');
-  const [session, setSession] = useState<Session | null>(null);
-
   const [formData, setFormData] = useState({
     email: '',
     username: '',
@@ -24,14 +19,24 @@ const RegisterArea = () => {
     password: '',
     memberType: 'general'
   });
+  const [session, setSession] = useState(null);
 
   useEffect(() => {
     const getSession = async () => {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
     };
+
     getSession();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => listener?.subscription.unsubscribe();
   }, []);
+
+  const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -39,18 +44,10 @@ const RegisterArea = () => {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-
     const { email, password, username, fullname, phone, facebook, memberType } = formData;
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (error) {
-      alert('เกิดข้อผิดพลาด: ' + error.message);
-      return;
-    }
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) return alert('เกิดข้อผิดพลาด: ' + error.message);
 
     await supabase.from('profiles').insert({
       id: data.user?.id,
@@ -78,7 +75,8 @@ const RegisterArea = () => {
           <div className="col-12 col-md-6 col-xl-5">
             <div className="register-card">
               <h2>สมัครสมาชิก</h2>
-              <p>หากมีบัญชีแล้ว 
+              <p>
+                หากมีบัญชีแล้ว
                 <Link className="ms-1 hover-primary" href="/login">เข้าสู่ระบบ</Link>
               </p>
 
