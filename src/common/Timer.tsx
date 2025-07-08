@@ -1,13 +1,17 @@
+'use client'
 import React, { useEffect, useState } from 'react';
 
-interface TimerProps {
+type MyTimerProps = {
   endTime: string | Date;
-}
+};
 
-const MyTimer: React.FC<TimerProps> = ({ endTime }) => {
+const MyTimer: React.FC<MyTimerProps> = ({ endTime }) => {
   const calculateTimeLeft = () => {
     const difference = +new Date(endTime) - +new Date();
-    let timeLeft = { minutes: 0, seconds: 0 };
+    let timeLeft = {
+      minutes: 0,
+      seconds: 0,
+    };
 
     if (difference > 0) {
       timeLeft = {
@@ -25,13 +29,12 @@ const MyTimer: React.FC<TimerProps> = ({ endTime }) => {
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft());
     }, 1000);
-
     return () => clearInterval(timer);
   }, [endTime]);
 
   return (
-    <div className="countdown-timer">
-      {timeLeft.minutes} นาที {timeLeft.seconds} วินาที
+    <div className="timer">
+      <span>{timeLeft.minutes} นาที {timeLeft.seconds} วินาที</span>
     </div>
   );
 };
