@@ -30,7 +30,6 @@ const Dashboard = () => {
 						<DashboardHeroCard />
 						<DashboardStatisticsChart />
 						<DashboardActivityTab />
-						<DashboardTrendingAuction />
 						<DashboardFeaturedCard />
 						<DashboardPriceHistory />
 						<DashboardTodaysPick />
