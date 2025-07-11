@@ -1,40 +1,33 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { supabase } from "@/utils/supabase";
-import type { User } from "@supabase/auth-js";
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { supabase } from '@/lib/supabaseClient';
+import type { User } from '@supabase/auth-js';
 
-interface UserContextType {
+type UserContextType = {
   user: User | null;
   setUser: (user: User | null) => void;
-}
+};
 
-const UserContext = createContext<UserContextType | undefined>(undefined);
+export const UserContext = createContext<UserContextType>({
+  user: null,
+  setUser: () => {},
+});
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      const currentUser = data?.session?.user;
-      if (currentUser?.email) {
-        setUser(currentUser as User);
-      } else {
-        setUser(null);
-      }
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setUser(data?.session?.user || null);
+    };
+    getSession();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user || null);
     });
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        const currentUser = session?.user;
-        if (currentUser?.email) {
-          setUser(currentUser as User);
-        } else {
-          setUser(null);
-        }
-      }
-    );
-
     return () => {
-      listener?.subscription.unsubscribe();
+      listener.subscription.unsubscribe();
     };
   }, []);
 
@@ -45,10 +38,4 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useUser = () => {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error("useUser must be used within a UserProvider");
-  }
-  return context;
-};
+export const useUser = () => useContext(UserContext);
