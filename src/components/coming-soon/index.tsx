@@ -1,1 +1,2 @@
-<MyTimer endTime={item.end_time} />
+const ComingSoon = () => { ... }
+export default ComingSoon
