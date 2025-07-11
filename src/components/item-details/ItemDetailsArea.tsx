@@ -92,7 +92,7 @@ const ItemDetailsArea = () => {
 
                 <p className="lh-1">Bid ending soon</p> 
                 
-                <MyTimer endTime={item.end_time} />
+                
 
 
                 <div className="row align-items-end">
