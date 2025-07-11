@@ -4,7 +4,6 @@ import DashboardHeader from "@/layouts/headers/DashboardHeader";
 import DashboardHeroCard from "./DashboardHeroCard";
 import DashboardStatisticsChart from "./DashboardStatisticsChart";
 import DashboardActivityTab from "./DashboardActivityTab";
-import DashboardTrendingAuction from "./DashboardTrendingAuction";
 import DashboardFeaturedCard from "./DashboardFeaturedCard";
 import DashboardPriceHistory from "./DashboardPriceHistory";
 import DashboardTodaysPick from "./DashboardTodaysPick";
