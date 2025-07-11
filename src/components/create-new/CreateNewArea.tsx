@@ -1,184 +1,129 @@
-
-'use client'
-
-import NiceSelect from '@/ui/NiceSelect';
-import Link from 'next/link';
-import React from 'react';
+import React, { useState } from 'react';
+import { supabase } from '@/utils/supabaseClient';
+import { useUser } from '@/utils/userContext';
 
 const CreateNewArea = () => {
+  const { user } = useUser();
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [startPrice, setStartPrice] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [images, setImages] = useState<File[]>([]);
+  const [coverIndex, setCoverIndex] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  const selectHandler = (e: any) => { };
+  const handleImageUpload = async () => {
+    const urls: string[] = [];
+    for (const image of images) {
+      const fileExt = image.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
+      const filePath = `auctions/${fileName}`;
 
+      const { error: uploadError } = await supabase.storage.from('images').upload(filePath, image);
 
+      if (uploadError) {
+        console.error(uploadError);
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage.from('images').getPublicUrl(filePath);
+      urls.push(data.publicUrl);
+    }
+    return urls;
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      const uploadedImageUrls = await handleImageUpload();
+
+      const { error } = await supabase.from('auctions').insert([
+        {
+          title,
+          description,
+          images: uploadedImageUrls,
+          cover_image_index: coverIndex,
+          start_price: Number(startPrice),
+          end_time: endTime,
+          created_by: user?.id,
+          is_closed: false,
+          created_at: new Date().toISOString(),
+        },
+      ]);
+
+      if (error) throw error;
+      alert('สร้างโพสต์สำเร็จ');
+    } catch (err: any) {
+      alert('เกิดข้อผิดพลาด: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <>
-      <div className="create-new-wrapper">
-        <div className="container">
-          <div className="row g-5 justify-content-center">
-            <div className="col-12 col-lg-8">
+    <div className="p-6 text-white">
+      <h1 className="text-2xl font-bold mb-4">สร้างกระทู้ประมูลใหม่</h1>
+      <input
+        className="mb-2 p-2 bg-gray-800 w-full"
+        placeholder="ชื่อประมูล"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+      />
+      <textarea
+        className="mb-2 p-2 bg-gray-800 w-full"
+        placeholder="รายละเอียด"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      />
+      <input
+        type="number"
+        className="mb-2 p-2 bg-gray-800 w-full"
+        placeholder="ราคาเริ่มต้น (บาท)"
+        value={startPrice}
+        onChange={(e) => setStartPrice(e.target.value)}
+      />
+      <input
+        type="datetime-local"
+        className="mb-2 p-2 bg-gray-800 w-full"
+        value={endTime}
+        onChange={(e) => setEndTime(e.target.value)}
+      />
+      <input
+        type="file"
+        accept="image/*"
+        multiple
+        className="mb-2"
+        onChange={(e) => {
+          const files = e.target.files;
+          if (files) setImages(Array.from(files).slice(0, 5));
+        }}
+      />
 
-              <div className="create-new-form border shadow-sm p-4 p-sm-5">
-                <h2 className="mb-4">Create new NFT</h2>
-                <form action="#">
-                  <div className="row align-items-center">
-                    <div className="col-12">
-                      <div className="form-group mb-4">
-                        <label className="mb-2 fz-16" htmlFor="formFileMultiple">Upload Files</label>
-                        <input className="form-control bg-transparent" id="formFileMultiple" type="file" multiple />
-                      </div>
-                    </div>
-                    <div className="col-12">
-                      <div className="form-group mb-4">
-                        <div className="form-check form-check-inline">
-                          <input className="form-check-input" id="inlineRadio1" type="radio" name="inlineRadioOptions" value="option1" defaultChecked />
-                          <label className="form-check-label" htmlFor="inlineRadio1">Fixed price</label>
-                        </div>
-                        <div className="form-check form-check-inline">
-                          <input className="form-check-input" id="inlineRadio2" type="radio" name="inlineRadioOptions" value="option2" />
-                          <label className="form-check-label" htmlFor="inlineRadio2">Unlock Purchased</label>
-                        </div>
-                        <div className="form-check form-check-inline">
-                          <input className="form-check-input" id="inlineRadio3" type="radio" name="inlineRadioOptions" value="option3" />
-                          <label className="form-check-label" htmlFor="inlineRadio3">Open for bids</label>
-                        </div>
-
-                      </div>
-
-
-                    </div>
-                    <div className="col-12">
-                      <div className="form-group mb-4">
-                        <label className="mb-2 fz-16" htmlFor="title">Title</label>
-                        <input className="form-control" id="title" type="text" placeholder="Macaw Bird" />
-                      </div>
-                    </div>
-                    <div className="col-12">
-                      <div className="form-group mb-4">
-                        <label className="mb-2 fz-16" htmlFor="description">Description</label>
-                        <input className="form-control" id="description" type="text" placeholder="Write short description" />
-                      </div>
-                    </div>
-                    <div className="col-12 col-md-6">
-                      <div className="form-group mb-4">
-                        <label className="mb-2 fz-16" htmlFor="price">Price</label>
-                        <input className="form-control" id="price" type="text" placeholder="0.324 ETH" />
-                      </div>
-                    </div>
-                    <div className="col-12 col-md-6">
-                      <div className="form-group mb-4">
-
-                        <label className="mb-2 fz-16" htmlFor="catagories">Catagory</label> 
-
-                        <NiceSelect
-                          className="filter-select bg-gray w-100 d-flex align-items-center"
-
-                          options={[
-                            { value: "Art", text: "Art" },
-                            { value: "01", text: "Cards" },
-                            { value: "02", text: "Collectibles" },
-                            { value: "03", text: "Domain" },
-                            { value: "04", text: "Music" },
-                            { value: "05", text: "Memes" },
-                            { value: "06", text: "Photos" },
-                            { value: "07", text: "Sports" },
-                            { value: "08", text: "Videos" },
-                            { value: "09", text: "Vitual Worlds" },
-                          ]}
-                          defaultCurrent={0}
-                          onChange={selectHandler}
-                          placeholder="Select an option"
-                          name="myNiceSelect"
-                        />
-
-
-                      </div>
-                    </div>
-                    <div className="col-12 col-sm-6">
-                      <div className="form-group mb-4">
-                        <label className="mb-2 fz-16" htmlFor="startingDate">Starting Date</label>
-                        <input className="form-control" id="startingDate" type="date" />
-                      </div>
-                    </div>
-                    <div className="col-12 col-sm-6">
-                      <div className="form-group mb-4">
-                        <label className="mb-2 fz-16" htmlFor="endingDate">Ending Date</label>
-                        <input className="form-control" id="endingDate" type="date" />
-                      </div>
-                    </div>
-                    <div className="col-12 col-lg-4">
-                      <div className="form-group mb-4">
-                        <label className="mb-2 fz-16" htmlFor="royality">Royality</label>
-                        <input className="form-control" id="royality" type="text" placeholder="5%" />
-                      </div>
-                    </div>
-                    <div className="col-12 col-sm-6 col-lg-4">
-                      <div className="form-group mb-4">
-                        <label className="mb-2 fz-16" htmlFor="noOfcopies">No of copies</label>
-                        <input className="form-control" id="noOfcopies" type="text" placeholder="13" />
-                      </div>
-                    </div>
-                    <div className="col-12 col-sm-6 col-lg-4">
-                      <div className="form-group mb-4">
-                        <label className="mb-2 fz-16" htmlFor="size">Size</label>
-                        <input className="form-control" id="size" type="text" placeholder="20MB" />
-                      </div>
-                    </div>
-                    <div className="col-12 col-md-8">
-                      <div className="form-check mb-4 mb-md-0">
-                        <input className="form-check-input" id="rememberMe" type="checkbox" value="" defaultChecked />
-                        <label className="form-check-label" htmlFor="rememberMe">I agree to all terms &amp; conditions.</label>
-                      </div>
-                    </div>
-                    <div className="col-12 col-md-4">
-                      <button className="btn btn-primary rounded-pill w-100" type="submit">Create</button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-            <div className="col-12 col-sm-8 col-lg-4">
-
-              <div className="nft-card card shadow-sm">
-                <div className="card-body">
-                  <div className="img-wrap"><img src="/assets/img/bg-img/17.jpg" alt="" />
-
-                    <div className="badge bg-dark position-absolute"><img src="/assets/img/core-img/fire.png" alt="" />Hot bid</div>
-                  </div>
-
-                  <div className="row gx-2 align-items-center mt-3">
-                    <div className="col-8" style={{ color: '#8084AE' }}><span className="d-block fz-12"><i className="bi bi-arrow-up"></i>Hightest bid 0.324 ETH</span></div>
-                    <div className="col-4 text-end">
-                      <button className="wishlist-btn" type="button"><i className="bi"></i></button>
-                    </div>
-                  </div>
-
-                  <div className="row gx-2 align-items-center mt-2">
-                    <div className="col-8">
-                      <div className="name-info d-flex align-items-center">
-                        <div className="author-img position-relative"><img className="shadow" src="/assets/img/bg-img/u1.jpg" alt="" /><i className="bi bi-check position-absolute bg-success"></i></div>
-                        <div className="name-author"><Link className="name d-block hover-primary fw-bold text-truncate" href="/item-details" data-bs-toggle="tooltip" data-bs-placement="top" title="Macaw Bird">Macaw Bird</Link><Link className="author d-block fz-12 hover-primary text-truncate" href="/author">@creative_art</Link></div>
-                      </div>
-                    </div>
-                    <div className="col-4">
-                      <div className="price text-end"><span className="fz-12 d-block">Current Bid</span>
-                        <h6 className="mb-0">0.324 ETH</h6>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="row gx-2 align-items-center mt-3">
-                    <div className="col-6"><a className="btn btn-primary btn-sm rounded-pill" href="#">Place bid</a></div>
-                    <div className="col-6 text-end"><Link className="btn btn-minimal btn-sm hover-primary" href="/activity"> <i className="bi bi-activity me-1"></i>Activity</Link></div>
-                  </div>
-                </div>
-              </div>
-              <h5 className="mb-0 mt-3 text-center"><i className="bi bi-eye me-1"></i>Live Preview</h5>
-            </div>
+      <div className="flex gap-2 mb-4">
+        {images.map((file, index) => (
+          <div
+            key={index}
+            className={`border ${coverIndex === index ? 'border-blue-400' : 'border-gray-600'} p-1`}
+            onClick={() => setCoverIndex(index)}
+          >
+            <img
+              src={URL.createObjectURL(file)}
+              alt="preview"
+              className="w-24 h-24 object-cover"
+            />
+            {coverIndex === index && <div className="text-center text-xs">หน้าปก</div>}
           </div>
-        </div>
+        ))}
       </div>
-    </>
+
+      <button
+        onClick={handleSubmit}
+        disabled={loading}
+        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+      >
+        {loading ? 'กำลังสร้าง...' : 'สร้างโพสต์'}
+      </button>
+    </div>
   );
 };
 

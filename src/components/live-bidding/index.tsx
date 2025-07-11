@@ -10,7 +10,7 @@ const LiveBidding = () => {
   return (
     <>
     <HeaderOne />
-    <Breadcrumb title="ทดสอบประมูล" subtitle="ทดสอบประมูล" />
+    <Breadcrumb title="ประมูล" subtitle="ประมูล" />
     <Divider />
     <LiveBiddingArea />
     <Divider />

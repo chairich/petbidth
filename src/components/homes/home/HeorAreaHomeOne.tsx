@@ -15,7 +15,7 @@ const HeorAreaHomeOne = () => {
 									data-aos-duration="750"
 									data-aos-delay="500"
 								>
-									Explore, buy, and sell exceptional NFTs.
+									ยินดีต้อนรับสู่ PetBidThai.com!
 								</h2>
 								<p
 									className="mb-4"
@@ -23,8 +23,7 @@ const HeorAreaHomeOne = () => {
 									data-aos-duration="750"
 									data-aos-delay="800"
 								>
-									It is crafted with the latest trend of design &amp; coded with
-									all modern approaches.
+									แพลตฟอร์มประมูลสัตว์เลี้ยงออนไลน์ที่ดีที่สุดในประเทศไทย คุณกำลังมองหาสัตว์เลี้ยงตัวใหม่ที่จะมาเติมเต็มความสุขในชีวิตของคุณอยู่ใช่ไหม? หรือเป็นผู้เพาะพันธุ์ที่ต้องการส่งมอบลูกๆ สัตว์เลี้ยงแสนรักให้กับบ้านใหม่ที่อบอุ่น?
 								</p>
 								<div
 									className="hero-btn-group"
@@ -34,9 +33,9 @@ const HeorAreaHomeOne = () => {
 								>
 									<Link
 										className="btn btn-primary rounded-pill mt-3 me-3"
-										href="/explore-1"
+										href="/help-questions"
 									>
-										Explore Now<i className="ms-2 bi bi-arrow-right"></i>
+										ดูการใช้งานประมูล<i className="ms-2 bi bi-arrow-right"></i>
 									</Link>
 									<Link
 										className="btn btn-minimal hover-primary mt-3"

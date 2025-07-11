@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import dynamic from 'next/dynamic';
 
-const MyTimer = dynamic(() => import('@/common/Timer'), { ssr: false });
+const MyTimer = dynamic(() => import('@/components/common/Timer'), { ssr: false });
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
@@ -60,7 +60,8 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
               <div className="nft-card card border-0">
                 <div className="card-body">
                   <div className="img-wrap">
-                    <img src={item.image_urls?.[0] || '/assets/img/default.jpg'} alt="" />
+                    <img src={item.images?.[item.cover_image_index || 0] || '/assets/img/default.jpg'} alt="" />
+
                     <div className="badge bg-success position-absolute">กำลังเปิดประมูล</div>
                     <div className="dropdown">
                       <button

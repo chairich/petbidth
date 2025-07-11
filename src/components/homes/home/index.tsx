@@ -25,15 +25,9 @@ const HomeOne = () => {
 			<HeaderOne />
 			<HeorAreaHomeOne />
 			<Divider />
-			<FeaturedHomeOne />
-			<Divider />
-			<TopSellerHomeOne />
-			<Divider />
 			<LiveAuctionHomeOne />
 			<Divider />
-			<DiscoverHomeOne />
-			<Divider />
-			<PopularCollectionHomeOne />
+			<TopSellerHomeOne />
 			<Divider />
 			<ProcessHomeOne />
 			<Divider />

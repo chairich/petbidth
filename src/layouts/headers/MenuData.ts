@@ -20,12 +20,12 @@ interface DataType  {
 const menu_data:DataType[] = [
 	{
 		id: 1,
-		title: "Home",
-		link: "#",
-		has_dropdown: true,
+		title: "หน้าแรก",
+		link: "/",
+		has_dropdown: false,
 		sub_menus: [
 			{ link: "/", title: "Home Variation 1" },
-			{ link: "/home-2", title: "Home Variation 2" },
+			
 		],
 	},
 	{

@@ -1,25 +1,39 @@
-
-
 'use client'
+import React, { useEffect, useState } from 'react';
 
-import React from 'react';
-import { useTimer } from 'react-timer-hook';
+const Timer = ({ endTime }: { endTime: string }) => {
+  const calculateTimeLeft = () => {
+    const difference = +new Date(endTime) - +new Date();
+    let timeLeft: any = {};
 
-const Timer = () => {
+    if (difference > 0) {
+      timeLeft = {
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60),
+      };
+    } else {
+      timeLeft = { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    }
 
-  const expiryTimestamp = new Date('2025-12-30');
-  const { seconds, minutes, hours, days } = useTimer({ expiryTimestamp });
+    return timeLeft;
+  };
 
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [endTime]);
 
   return (
-    <>
-      <div className="bid-ends" >
-        <div><span className="days">{days}</span><span>Days</span></div>
-        <div><span className="hours">{hours}</span><span>Hours</span></div>
-        <div><span className="minutes">{minutes}</span><span>Min</span></div>
-        <div><span className="seconds">{seconds}</span><span>Sec</span></div>
-      </div>
-    </>
+    <div className="countdown-timer bg-warning text-dark px-2 py-1 position-absolute bottom-0 start-0 m-2" style={{ fontSize: '0.85rem' }}>
+      ⏳ {timeLeft.days}วัน {timeLeft.hours}ชั่วโมง {timeLeft.minutes}นาที {timeLeft.seconds}วินาที
+    </div>
   );
 };
 

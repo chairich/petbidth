@@ -3,16 +3,22 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import Link from 'next/link'
+import dayjs from 'dayjs'
+import duration from 'dayjs/plugin/duration'
+import LikeButton from '@/components/LikeButton'; // แทรกไว้ด้านบน
+dayjs.extend(duration)
 
 const LiveBiddingArea = () => {
   const [auctions, setAuctions] = useState<any[]>([])
   const [active, setActive] = useState<number | null>(null)
+  const [countdowns, setCountdowns] = useState<{ [key: string]: string }>({})
+  const [likes, setLikes] = useState<{ [key: string]: boolean }>({})
 
   const fetchAuctions = async () => {
     const { data, error } = await supabase
       .from('auctions')
       .select('*')
-      .eq('status', 'open') // แสดงเฉพาะที่เปิดประมูล
+      .eq('is_closed', false)
 
     if (error) console.error(error)
     else setAuctions(data || [])
@@ -22,8 +28,35 @@ const LiveBiddingArea = () => {
     fetchAuctions()
   }, [])
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const updatedCountdowns: { [key: string]: string } = {}
+
+      auctions.forEach((auction) => {
+        const now = dayjs()
+        const end = dayjs(auction.end_time)
+        const diff = end.diff(now)
+
+        if (diff > 0) {
+          const dur = dayjs.duration(diff)
+          updatedCountdowns[auction.id] = `เหลือเวลา ${dur.days()} วัน ${dur.hours()} ชม ${dur.minutes()} นาที ${dur.seconds()} ว`
+        } else {
+          updatedCountdowns[auction.id] = `หมดเวลาแล้ว`
+        }
+      })
+
+      setCountdowns(updatedCountdowns)
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [auctions])
+
   const handleActive = (id: number) => {
     setActive(active === id ? null : id)
+  }
+
+  const toggleLike = (id: string) => {
+    setLikes((prev) => ({ ...prev, [id]: !prev[id] }))
   }
 
   return (
@@ -34,13 +67,23 @@ const LiveBiddingArea = () => {
             <div key={i} className="col-12 col-sm-6 col-lg-4 col-xl-3">
               <div className="nft-card card shadow-sm">
                 <div className="card-body">
-                  <div className="img-wrap">
-                    <img src={item.cover_image || '/assets/img/bg-img/9.jpg'} alt="" />
-                    <div className="badge bg-dark position-absolute">
-                      🔥 ประมูลสด
+                  <div className="img-wrap position-relative">
+                    <img
+                      src={item.images?.[item.cover_image_index] || '/assets/img/bg-img/9.jpg'}
+                      alt=""
+                      className="w-100 rounded"
+                      style={{ height: 240, objectFit: 'cover' }}
+                    />
+                    <div className="badge bg-success position-absolute">กำลังเปิดประมูล</div>
+                    <div className="position-absolute top-0 end-0 m-2">
+                      <button onClick={() => toggleLike(item.id)} className="btn btn-sm text-white">
+                        <img src={item.image} alt="" /><LikeButton auctionId={item.id} />
+                      </button>
                     </div>
-                    {/* ปุ่ม Dropdown */}
-                    <div className="dropdown">
+                    <div className="position-absolute bottom-0 start-0 m-2 bg-dark text-white px-2 py-1 rounded-pill small">
+                      {countdowns[item.id] || ''}
+                    </div>
+                    <div className="dropdown position-absolute top-0 start-50 translate-middle-x mt-2">
                       <button
                         onClick={() => handleActive(item.id)}
                         className={`btn dropdown-toggle rounded-pill shadow-sm ${
@@ -64,7 +107,7 @@ const LiveBiddingArea = () => {
                       <Link href={`/auction/${item.id}`} className="d-block fw-bold hover-primary text-truncate">
                         {item.title}
                       </Link>
-                      <small className="text-muted">ราคาเริ่มต้น: {item.current_bid} บาท</small>
+                      <small className="text-muted">ราคาเริ่มต้น: {item.start_price} บาท</small>
                     </div>
                     <div className="col-12 mt-2">
                       <Link

@@ -1,138 +1,165 @@
 'use client'
-import Link from 'next/link';
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://ykinhwdtvucjgryyjyvj.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlraW5od2R0dnVjamdyeXlqeXZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE1MzI0NTgsImV4cCI6MjA2NzEwODQ1OH0.MFPNlMFkXroHaCUvtkPk5ZUAUB9ElcQ-Aq9jqdqxh3k';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-const RegisterArea = () => {
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
+const LoginArea = () => {
+  const router = useRouter();
+  const [emailOrUsername, setEmailOrUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
-  const [memberType, setMemberType] = useState('general');
+  // โหลดข้อมูลที่จำไว้
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('savedEmail');
+    const savedPassword = localStorage.getItem('savedPassword');
+    if (savedEmail) setEmailOrUsername(savedEmail);
+    if (savedPassword) setPassword(savedPassword);
+  }, []);
 
-  const [formData, setFormData] = useState({
-    email: '',
-    username: '',
-    fullname: '',
-    phone: '',
-    facebook: '',
-    password: '',
-    memberType: 'general'
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: any) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const { email, password, username, fullname, phone, facebook, memberType } = formData;
+    if (rememberMe) {
+      localStorage.setItem('savedEmail', emailOrUsername);
+      localStorage.setItem('savedPassword', password);
+    } else {
+      localStorage.removeItem('savedEmail');
+      localStorage.removeItem('savedPassword');
+    }
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
+    let emailToUse = emailOrUsername;
+
+    // ถ้าไม่ใช่อีเมล ให้ลองค้นหาจาก username
+    if (!emailOrUsername.includes('@')) {
+      const { data: usernameLookup, error: lookupError } = await supabase
+        .from('users')
+        .select('email')
+        .eq('username', emailOrUsername)
+        .single();
+
+      if (lookupError || !usernameLookup?.email) {
+        alert("ไม่พบชื่อผู้ใช้นี้ในระบบ");
+        return;
+      }
+
+      emailToUse = usernameLookup.email;
+    }
+
+    const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+      email: emailToUse,
       password,
     });
 
-    if (error) {
-      alert('เกิดข้อผิดพลาด: ' + error.message);
+    if (loginError) {
+      alert("ไม่พบบัญชีผู้ใช้นี้หรือรหัสผ่านไม่ถูกต้อง");
+      console.error("Login error:", loginError);
       return;
     }
 
-    await supabase.from('profiles').insert({
-      id: data.user?.id,
-      username,
-      fullname,
-      phone,
-      facebook,
-      member_type: memberType,
-    });
+    const user = loginData.user;
+    if (!user) {
+      alert("เข้าสู่ระบบไม่สำเร็จ");
+      return;
+    }
 
-    alert('สมัครสมาชิกเรียบร้อยแล้ว กรุณายืนยันอีเมลก่อนใช้งาน');
-  };
+    // ตรวจสอบสิทธิ์เพิ่มเติมจากตาราง users
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('role, status')
+      .eq('id', user.id)
+      .single();
 
-  const handleFacebookLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'facebook',
-      options: { redirectTo: 'https://petbidthai.com/' }
-    });
+    if (userError || !userData) {
+      alert("ไม่พบข้อมูลผู้ใช้นี้ในระบบ");
+      return;
+    }
+
+    if (userData.status === 'pending') {
+      alert("บัญชีของคุณยังไม่ได้รับการอนุมัติ");
+      return;
+    }
+
+    // Redirect ตามสิทธิ์
+    if (userData.role === 'admin') {
+      router.push('/admin/dashboard');
+    } else if (userData.role === 'vip') {
+      router.push('/dashboard/vip');
+    } else {
+      router.push('/dashboard');
+    }
   };
 
   return (
-    <div className="register-area">
+    <section className="login-area">
       <div className="container">
-        <div className="row g-4 g-lg-5 align-items-center justify-content-between">
-          <div className="col-12 col-md-6 col-xl-5">
-            <div className="register-card">
-              <h2>สมัครสมาชิก</h2>
-              <p>หากมีบัญชีแล้ว 
-                <Link className="ms-1 hover-primary" href="/login">เข้าสู่ระบบ</Link>
+        <div className="row g-4 align-items-center justify-content-between">
+          <div className="col-12 col-md-6 col-lg-5">
+            <div className="card login-card">
+              <h3 className="mb-4">Welcome Back!</h3>
+              <form onSubmit={handleLogin}>
+                <div className="form-group mb-3">
+                  <input
+                    type="text"
+                    placeholder="อีเมลหรือชื่อผู้ใช้"
+                    className="form-control"
+                    required
+                    value={emailOrUsername}
+                    onChange={(e) => setEmailOrUsername(e.target.value)}
+                  />
+                </div>
+                <div className="form-group mb-3">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="รหัสผ่าน"
+                    className="form-control"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <label
+                    className="label-psswd"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{ cursor: 'pointer', display: 'block', marginTop: '5px' }}
+                  >
+                    {showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
+                  </label>
+                </div>
+                <div className="form-check mb-3">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="rememberMe"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  <label className="form-check-label" htmlFor="rememberMe">
+                    จดจำรหัสผ่านไว้
+                  </label>
+                </div>
+                <button type="submit" className="btn btn-success w-100">Log In</button>
+              </form>
+              <p className="mt-3 text-center">
+                ยังไม่มีบัญชี? <a href="/register" className="text-decoration-underline">สมัครสมาชิก</a>
               </p>
-
-              <div className="register-form mt-4">
-                <form onSubmit={handleSubmit}>
-                  <div className="form-group mb-3">
-                    <input className="form-control" name="email" type="email" placeholder="อีเมล" required onChange={handleChange} />
-                  </div>
-                  <div className="form-group mb-3">
-                    <input className="form-control" name="username" type="text" placeholder="ชื่อผู้ใช้งาน" required onChange={handleChange} />
-                  </div>
-                  <div className="form-group mb-3">
-                    <input className="form-control" name="fullname" type="text" placeholder="ชื่อ-นามสกุล" required onChange={handleChange} />
-                  </div>
-                  <div className="form-group mb-3">
-                    <input className="form-control" name="phone" type="text" placeholder="เบอร์โทรศัพท์" required onChange={handleChange} />
-                  </div>
-                  <div className="form-group mb-3">
-                    <input className="form-control" name="facebook" type="text" placeholder="Facebook (URL หรือชื่อ)" required onChange={handleChange} />
-                    <button type="button" onClick={handleFacebookLogin} className="btn btn-outline-primary btn-sm mt-2">
-                      สมัครผ่าน Facebook
-                    </button>
-                  </div>
-                  <div className="form-group mb-3">
-                    <label className="label-psswd" htmlFor="registerPassword" onClick={togglePasswordVisibility}>
-                      {passwordVisible ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
-                    </label>
-                    <input className="form-control" name="password" id="registerPassword" type={passwordVisible ? 'text' : 'password'} placeholder="รหัสผ่าน" required onChange={handleChange} />
-                  </div>
-
-                  <div className="form-group mb-3">
-                    <label>เลือกประเภทสมาชิก:</label>
-                    <select className="form-control mt-1" name="memberType" value={memberType} onChange={(e) => {
-                      setMemberType(e.target.value);
-                      handleChange(e);
-                    }} required>
-                      <option value="general">ผู้ประมูลทั่วไป</option>
-                      <option value="vip">ลูกค้า VIP</option>
-                      <option value="admin" disabled>แอดมิน (เพิ่มโดยทีมงาน)</option>
-                    </select>
-                  </div>
-
-                  <div className="form-check mb-3">
-                    <input className="form-check-input" id="agree" type="checkbox" required />
-                    <label className="form-check-label" htmlFor="agree">
-                      ฉันยอมรับ <Link href="/terms" className="text-decoration-underline">เงื่อนไขการใช้งาน</Link>
-                    </label>
-                  </div>
-
-                  <button className="btn btn-primary w-100" type="submit">สมัครสมาชิก</button>
-                </form>
-              </div>
             </div>
           </div>
-
           <div className="col-12 col-md-6">
-            <div className="register-thumbnail mt-5 mt-md-0">
-              <img src="/assets/img/illustrator/4.png" alt="" />
+            <div className="login-thumbnail text-center mt-5 mt-md-0">
+              <img src="/assets/img/illustrator/4.png" alt="login" />
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
-export default RegisterArea;
+export default LoginArea;

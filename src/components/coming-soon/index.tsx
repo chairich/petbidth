@@ -18,7 +18,8 @@ const ComingSoon = () => {
               <div className="col-12 col-lg-8">
                 <div className="logo mb-5"><img src="/assets/img/core-img/logo-white.png" alt="" /></div> 
 
-                 <MyTimer />
+                 <MyTimer endTime={item.end_time} />
+
 
                 <h2 className="display-4 mb-4 fw-bold">Coming Soon</h2>
                 <p className="mb-4">Build an excellent NFTs website with Funto.</p>

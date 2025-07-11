@@ -100,7 +100,7 @@ const AboutArea = () => {
 						</div>
 						<div className="col-12 col-lg-7 col-xl-6">
 							<h2 className="h2 fw-bold mb-3">
-								Explore, buy, and sell exceptional NFTs.
+								ยินดีต้อนรับสู่ PetBidThai.com!
 							</h2>
 							<p className="fz-18">
 								It is crafted with the latest trend of design &amp; coded with

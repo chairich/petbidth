@@ -71,7 +71,8 @@ const DashboardTrendingAuction = () => {
                           </ul>
                         </div> 
 
-                        <MyTimer />
+                       <MyTimer endTime={item.end_time} />
+
 
                       </div>
 
