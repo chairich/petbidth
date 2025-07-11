@@ -1,3 +1,4 @@
+// userContext.ts
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import type { User } from '@supabase/auth-js';
