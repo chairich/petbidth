@@ -28,6 +28,12 @@ const NavMenu = () => {
     fetchSession();
   }, []);
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    Cookies.remove("session");
+    window.location.href = "/";
+  };
+
   return (
     <ul className="navbar-nav navbar-nav-scroll my-2 my-lg-0">
       {menu_data.map((item, i) => (
@@ -54,28 +60,29 @@ const NavMenu = () => {
         </li>
       ))}
 
-      {userSession?.id && (
+      {userSession?.id ? (
         <>
           {userRole === 'admin' && (
-            <>
-              <li><Link href="/admin/post-auction">📢 โพสต์ประมูล</Link></li>
-              <li><Link href="/admin/banner">🏷 จัดการแบนเนอร์</Link></li>
-            </>
+            <li className="ft-dd">
+              <span>⚙ เมนูแอดมิน</span>
+              <ul className="ft-dd-menu">
+                <li><Link href="/admin/post-auction">📢 โพสต์ประมูล</Link></li>
+                <li><Link href="/admin/banner">🏷 จัดการแบนเนอร์</Link></li>
+                <li><Link href="/admin/news/new">📝 โพสต์กระทู้</Link></li>
+              </ul>
+            </li>
           )}
-          <li><Link href="/admin/news/new">📝 โพสต์กระทู้</Link></li>
           <li><Link href="/profile">🛠 แก้ไขโปรไฟล์</Link></li>
           <li>
-            <button
-              onClick={async () => {
-                await supabase.auth.signOut();
-                Cookies.remove("session");
-                window.location.href = "/";
-              }}
-              className="btn btn-link nav-link p-0"
-            >
+            <button onClick={handleLogout} className="btn btn-link nav-link p-0">
               🚪 ออกจากระบบ
             </button>
           </li>
+        </>
+      ) : (
+        <>
+          <li><Link href="/register">🆕 สมัครสมาชิก</Link></li>
+          <li><Link href="/login">🔐 เข้าสู่ระบบ</Link></li>
         </>
       )}
     </ul>
