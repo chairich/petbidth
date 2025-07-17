@@ -6,11 +6,8 @@ import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie'; // ใช้ js-cookie
 import { createClient } from '@supabase/supabase-js';
 import { signIn } from 'next-auth/react'; // ✅ เพิ่ม import สำหรับ Facebook login
+import { supabase } from '@/lib/supabaseClient';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 const LoginArea = () => {
   const router = useRouter();
