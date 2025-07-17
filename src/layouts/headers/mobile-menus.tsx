@@ -1,0 +1,102 @@
+"use client";
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import menu_data from "./MenuData";
+import { supabase } from "@/lib/supabaseClient";
+import Cookies from "js-cookie";
+
+const MobileMenus = ({ setOpenMenu, openMenu }: any) => {
+  const [navTitle, setNavTitle] = useState("");
+  const [navTitle2, setNavTitle2] = useState("");
+  const [userSession, setUserSession] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSessionAndRole = async () => {
+      const { data } = await supabase.auth.getSession();
+      const user = data?.session?.user || null;
+      setUserSession(user);
+
+      if (user) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        setUserRole(userData?.role || null);
+      }
+    };
+    fetchSessionAndRole();
+  }, []);
+
+  const openMobileMenu = (menu: string) => {
+    setNavTitle(navTitle === menu ? "" : menu);
+  };
+
+  const openMobileMenu2 = (menu: string) => {
+    setNavTitle2(navTitle2 === menu ? "" : menu);
+  };
+
+  return (
+    <div className={`navbar-collapse collapse ${openMenu ? 'show' : ''}`} id="funtoNav">
+      <ul className="navbar-nav navbar-nav-scroll my-2 my-lg-0">
+        {menu_data.map((item, i) => (
+          <li key={i} className={`${item.has_dropdown ? 'ft-dd' : ''}`} onClick={() => openMobileMenu(item.title)}>
+            <Link href={item.link}>{item.title}</Link>
+            {item.has_dropdown && (
+              <>
+                <div className="dropdown-toggler"><i className="bi bi-caret-down-fill"></i></div>
+                <ul className="ft-dd-menu" style={{ display: navTitle === item.title ? "block" : "none" }}>
+                  {item.sub_menus?.map((submenu, index) => (
+                    <React.Fragment key={index}>
+                      <li className={`${submenu.inner_has_dropdown ? 'ft-dd' : ''}`} onClick={() => openMobileMenu2(submenu.title)}>
+                        <Link href={submenu.link}>{submenu.title}</Link>
+                        {submenu.inner_has_dropdown && (
+                          <>
+                            <div className="dropdown-toggler"><i className="bi bi-caret-down-fill"></i></div>
+                            <ul className="ft-dd-menu" style={{ display: navTitle2 === submenu.title ? "block" : "none" }}>
+                              {submenu.inner_sub?.map((sub_item, sub_index) => (
+                                <li key={sub_index}><Link href={sub_item.link}>{sub_item.title}</Link></li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
+                      </li>
+                    </React.Fragment>
+                  ))}
+                </ul>
+              </>
+            )}
+          </li>
+        ))}
+
+        {userSession?.id && (
+          <>
+            <li><Link href="/post">📝 โพสต์กระทู้</Link></li>
+            {userRole === 'admin' && (
+              <>
+                <li><Link href="/admin/post-auction">📢 โพสต์ประมูล</Link></li>
+                <li><Link href="/admin/banner">🏷 จัดการแบนเนอร์</Link></li>
+              </>
+            )}
+            <li><Link href="/profile">🛠 แก้ไขโปรไฟล์</Link></li>
+            <li>
+              <button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  Cookies.remove("session");
+                  window.location.href = "/";
+                }}
+                className="btn btn-link nav-link p-0"
+              >
+                🚪 ออกจากระบบ
+              </button>
+            </li>
+          </>
+        )}
+      </ul>
+    </div>
+  );
+};
+
+export default MobileMenus;
