@@ -4,8 +4,15 @@ import React, { useEffect, useState } from "react";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Image from "next/image";
 
+type NewsItem = {
+  id: string;
+  title: string;
+  image_url: string;
+  created_at: string;
+};
+
 const FooterOne = () => {
-  const [newsList, setNewsList] = useState([]);
+  const [newsList, setNewsList] = useState<NewsItem[]>([]);
   const supabase = createClientComponentClient();
 
   useEffect(() => {

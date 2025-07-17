@@ -5,16 +5,17 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "next start"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@next-auth/supabase-adapter": "^0.2.1",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/auth-helpers-react": "^0.5.0",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.50.4",
     "@tailwindcss/typography": "^0.5.16",
+    "@types/next-auth": "^3.13.0",
     "@types/uuid": "^10.0.0",
     "bootstrap": "^5.3.7",
     "date-fns": "^4.1.0",

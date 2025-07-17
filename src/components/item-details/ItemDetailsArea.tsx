@@ -3,11 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL, 
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+import { supabase } from '@/lib/supabaseClient';
 
 const ItemDetailsArea = () => {
   const { id } = useParams();
@@ -37,11 +33,10 @@ const ItemDetailsArea = () => {
           setSession(null);
         }
 
-        setIsLoadingSession(false);
-        const { subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-          setSession(session);
-          setIsLoadingSession(false);
-        });
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+  setSession(session);
+  setIsLoadingSession(false);
+});
 
         return () => {
           if (subscription) {

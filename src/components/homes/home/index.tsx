@@ -7,7 +7,7 @@ import LiveAuctionHomeOne from "./LiveAuctionHomeOne";
 import Divider from "@/components/common/Divider";
 import ShopBannerCarousel from "./ShopBannerCarousel";
 import FooterOne from "@/layouts/footers/FooterOne";
-import ScrollToTop from "@/components/common/ScrollToTop";
+
 
 
 const HomeOne = () => {
@@ -16,7 +16,7 @@ const HomeOne = () => {
 	}
 	return (
 		<>
-			<ScrollToTop />
+			
 			<HeaderOne />
 			<HeorAreaHomeOne />
 			<Divider />
