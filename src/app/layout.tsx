@@ -10,9 +10,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-theme="dark">
-      <head> 
-        <link rel="icon" href="favicon.png" sizes="any" />
-        <link
+      <head> <link rel="icon" href="/favicon.png" sizes="any" />
+            <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+            <meta name="apple-mobile-web-app-capable" content="yes" />
+            <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+            <meta name="apple-mobile-web-app-title" content="PetBidThai" />
+            <meta name="mobile-web-app-capable" content="yes" />
+            <link rel="icon" href="favicon.png" sizes="any" />
+            <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&display=swap"
         /> 
