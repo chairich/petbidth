@@ -1,16 +1,16 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie'; // ใช้ js-cookie
-import { createClient } from '@supabase/supabase-js';
-import { signIn } from 'next-auth/react'; // ✅ เพิ่ม import สำหรับ Facebook login
+import { useRouter, useSearchParams } from 'next/navigation';
+import Cookies from 'js-cookie';
+import { signIn } from 'next-auth/react';
 import { supabase } from '@/lib/supabaseClient';
-
 
 const LoginArea = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("callbackUrl") || "/";
+
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -18,17 +18,15 @@ const LoginArea = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [session, setSession] = useState<any>(null);
 
-  // Fetch session data on initial load
   useEffect(() => {
     const fetchSession = async () => {
       const { data: sessionData } = await supabase.auth.getSession();
       setSession(sessionData?.session || null);
-      setIsLoading(false); // Finish loading after getting session
+      setIsLoading(false);
     };
     fetchSession();
   }, []);
 
-  // Handle login process
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -76,7 +74,6 @@ const LoginArea = () => {
       return;
     }
 
-    // Store user data in cookies
     const role = userData?.role ?? 'user';
     Cookies.set('session', JSON.stringify({
       id: user.id,
@@ -84,8 +81,7 @@ const LoginArea = () => {
       role: role
     }), { expires: 1, path: '/' });
 
-    // ✅ Redirect to home after login
-    router.push('/');
+    router.push(redirectTo);
   }
 
   return (
@@ -95,6 +91,15 @@ const LoginArea = () => {
           <div className="col-12 col-md-6 col-lg-5">
             <div className="card login-card shadow-lg">
               <h3 className="mb-4 text-center">Welcome Back!</h3>
+
+              {/* 🔵 ปุ่ม Facebook อยู่ก่อนฟอร์ม */}
+              <button
+                onClick={() => signIn("facebook", { callbackUrl: redirectTo })}
+                className="btn btn-outline-primary mb-3 w-100 rounded-pill"
+              >
+                <i className="fab fa-facebook me-2"></i> เข้าสู่ระบบด้วย Facebook
+              </button>
+
               <form onSubmit={handleLogin}>
                 <div className="form-group mb-3">
                   <input
@@ -106,7 +111,7 @@ const LoginArea = () => {
                     onChange={(e) => setEmailOrUsername(e.target.value)}
                   />
                 </div>
-                <button onClick={() => signIn("facebook")} className="btn btn-primary mb-3 w-100 rounded-pill">เข้าสู่ระบบด้วย Facebook</button>
+
                 <div className="form-group mb-3">
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -124,6 +129,7 @@ const LoginArea = () => {
                     {showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
                   </label>
                 </div>
+
                 <div className="form-check mb-3">
                   <input
                     className="form-check-input"
@@ -136,8 +142,12 @@ const LoginArea = () => {
                     จดจำรหัสผ่านไว้
                   </label>
                 </div>
-                <button type="submit" className="btn btn-success w-100">เข้าสู่ระบบ</button>
+
+                <button type="submit" className="btn btn-success w-100">
+                  เข้าสู่ระบบ
+                </button>
               </form>
+
               <p className="mt-3 text-center">
                 ยังไม่มีบัญชี? <a href="/register" className="text-decoration-underline">สมัครสมาชิก</a>
               </p>
