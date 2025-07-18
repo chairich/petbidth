@@ -1,4 +1,4 @@
-import EditAuction from "@/components/edit-auction";
+import EditAuction from '@/components/edit-auction/EditAuction'
 import React from "react";
 
 export const metadata = {
