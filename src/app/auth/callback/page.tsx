@@ -1,20 +1,22 @@
+"use client";
 
-'use client'
-import { useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
-export default function AuthCallback() {
-  const router = useRouter();
+export default function CallbackHandler() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/';
-  const supabase = createClientComponentClient();
+  const token = searchParams.get("token");
 
   useEffect(() => {
-    supabase.auth.getSession().then(() => {
-      router.push(callbackUrl);
-    });
-  }, []);
+    if (token) {
+      // ทำงาน เช่น ส่ง token ไป backend หรือลงทะเบียนผู้ใช้ ฯลฯ
+      console.log("Token:", token);
+    }
+  }, [token]);
 
-  return <p>กำลังเข้าสู่ระบบ...</p>;
+  return (
+    <div>
+      กำลังตรวจสอบ token...
+    </div>
+  );
 }
