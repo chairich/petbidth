@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import useOnlineStatus from "@/hooks/useOnlineStatus";
+import { useUser } from "@supabase/auth-helpers-react"; // หรือดึงจาก session
 import React, { useEffect, useState } from "react";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Image from "next/image";
@@ -15,7 +17,9 @@ const FooterOne = () => {
   const [newsList, setNewsList] = useState<NewsItem[]>([]);
   const [onlineCount, setOnlineCount] = useState<number>(0);
   const supabase = createClientComponentClient();
+const user = useUser();
 
+  useOnlineStatus(); // ✅ เรียกตรงนี้ — เพื่อให้ footer ใช้ hook นี้ทุกครั้งที่โหลด
   useEffect(() => {
     const fetchNews = async () => {
       const { data, error } = await supabase
@@ -37,7 +41,8 @@ const FooterOne = () => {
         const { count, error } = await supabase
           .from('online_users')
           .select('user_id', { count: 'exact', head: true })
-          .gt('last_active', since);
+          .gt('last_seen', since);
+
 
         if (error) {
           console.error("Error fetching online users:", error);
