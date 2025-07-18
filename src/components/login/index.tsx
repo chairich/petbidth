@@ -1,19 +1,20 @@
 
 
+'use client';
 import HeaderOne from '@/layouts/headers/HeaderOne';
 import React from 'react';
 import Breadcrumb from '../common/Breadcrumb';
 import Divider from '../common/Divider';
 import FooterOne from '@/layouts/footers/FooterOne';
-import LoginArea from './LoginArea';
+import LoginAreaForm from './LoginArea';
 
-const Login = () => {
+const LoginArea = () => {
   return (
     <>
       <HeaderOne />
-      <Breadcrumb subtitle="Login" title="Login" />
+      <Breadcrumb subtitle="เข้าสู่ระบบสมาชิก" title="Login" />
       <Divider />
-      <LoginArea />
+      <LoginAreaForm />
       <Divider />
       <FooterOne />
 
@@ -21,4 +22,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginArea;
