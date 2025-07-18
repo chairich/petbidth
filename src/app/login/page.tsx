@@ -1,10 +1,10 @@
 // src/app/login/page.tsx
 
-import LoginArea from "@/components/login";
 import React from "react";
+import LoginArea from "@/components/login";
 
 export const metadata = {
-	title: "เข้าสู่ระบบสมาชิก - เว็บประมูล เพ็ชบิดไทย",
+	title: "Funto About - PetBidThai.com",
 };
 
 const index = () => {
@@ -16,3 +16,5 @@ const index = () => {
 };
 
 export default index;
+
+
