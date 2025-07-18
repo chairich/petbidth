@@ -1,20 +1,16 @@
-// src/app/login/page.tsx
-
-import React from "react";
+import React, { Suspense } from "react";
 import LoginArea from "@/components/login";
 
 export const metadata = {
-	title: "Funto About - PetBidThai.com",
+  title: "เข้าสู่ระบบ - เว็บประมูล เพ็ชบิดไทย",
 };
 
-const index = () => {
-	return (
-		<>
-			<LoginArea />
-		</>
-	);
+const Page = () => {
+  return (
+    <Suspense fallback={<div>กำลังโหลด...</div>}>
+      <LoginArea />
+    </Suspense>
+  );
 };
 
-export default index;
-
-
+export default Page;
