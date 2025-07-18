@@ -1,7 +1,16 @@
-'use client';
+import LoginArea from "@/components/login";
+import React from "react";
 
-import Login from '@/components/login';
+export const metadata = {
+	title: "เข้าสู่ระบบ - เว็บประมูล เพ็ชบิดไทย",
+};
 
-export default function LoginPage() {
-  return <Login />;
-}
+const index = () => {
+	return (
+		<>
+			<LoginArea />
+		</>
+	);
+};
+
+export default index;
