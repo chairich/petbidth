@@ -1,22 +1,10 @@
-"use client";
+import { Suspense } from 'react'
+import CallbackClient from './callback-client'
 
-import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
-
-export default function CallbackHandler() {
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
-
-  useEffect(() => {
-    if (token) {
-      // ทำงาน เช่น ส่ง token ไป backend หรือลงทะเบียนผู้ใช้ ฯลฯ
-      console.log("Token:", token);
-    }
-  }, [token]);
-
+export default function Page() {
   return (
-    <div>
-      กำลังตรวจสอบ token...
-    </div>
-  );
+    <Suspense fallback={<p>กำลังเข้าสู่ระบบ...</p>}>
+      <CallbackClient />
+    </Suspense>
+  )
 }
