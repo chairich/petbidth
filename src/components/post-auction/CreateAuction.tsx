@@ -87,7 +87,8 @@ const CreateAuction = () => {
       created_at: new Date().toISOString(),
     };
 
-    const { error } = await supabase.from('auctions').insert(newAuction);
+    const { data, error } = await supabase.from('auctions').insert(newAuction).select().single();
+
     if (error) {
       alert('เกิดข้อผิดพลาด: ' + error.message);
       setUploading(false);
@@ -95,7 +96,7 @@ const CreateAuction = () => {
     }
 
     alert('สร้างกระทู้ประมูลเรียบร้อยแล้ว');
-    router.push('/vip/dashboard');
+     router.push(`/auction/${data.id}`);
   };
 
   return (
