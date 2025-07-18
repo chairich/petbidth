@@ -1,8 +1,6 @@
-import LoginArea from "@/components/login";
-import React from "react";
-
+import LoginArea from '@/components/login';
 export const metadata = {
-	title: "เข้าสู่ระบบ - เว็บประมูล เพ็ชบิดไทย",
+	title: "เข้าสู่ระบบสมาชิก - เว็บประมูล เพ็ชบิดไทย",
 };
 
 const index = () => {
