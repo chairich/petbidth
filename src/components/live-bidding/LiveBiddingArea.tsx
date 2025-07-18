@@ -1,3 +1,4 @@
+
 'use client'
 
 import React, { useEffect, useState } from 'react'
@@ -5,7 +6,7 @@ import { supabase } from '@/lib/supabaseClient'
 import Link from 'next/link'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
-import LikeButton from '@/components/LikeButton'; // แทรกไว้ด้านบน
+import LikeButton from '@/components/LikeButton'
 dayjs.extend(duration)
 
 const LiveBiddingArea = () => {
@@ -13,19 +14,34 @@ const LiveBiddingArea = () => {
   const [active, setActive] = useState<number | null>(null)
   const [countdowns, setCountdowns] = useState<{ [key: string]: string }>({})
   const [likes, setLikes] = useState<{ [key: string]: boolean }>({})
+  const [userRole, setUserRole] = useState<string | null>(null)
 
   const fetchAuctions = async () => {
     const { data, error } = await supabase
       .from('auctions')
       .select('*')
-      .eq('is_closed', false)
+      .order('created_at', { ascending: false }) // หรือไม่ใส่เงื่อนไขใดเลยเพื่อโหลดทั้งหมด
+
 
     if (error) console.error(error)
     else setAuctions(data || [])
   }
 
+  const fetchUserRole = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data, error } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+      if (!error) setUserRole(data?.role || null)
+    }
+  }
+
   useEffect(() => {
     fetchAuctions()
+    fetchUserRole()
   }, [])
 
   useEffect(() => {
@@ -74,7 +90,10 @@ const LiveBiddingArea = () => {
                       className="w-100 rounded"
                       style={{ height: 240, objectFit: 'cover' }}
                     />
-                    <div className="badge bg-success position-absolute">กำลังเปิดประมูล</div>
+                    <div className={`badge position-absolute px-2 py-1 rounded-pill text-white fw-bold small ${dayjs(item.end_time).isBefore(dayjs()) ? 'bg-danger' : 'bg-success'}`}>
+  {dayjs(item.end_time).isBefore(dayjs()) ? 'ปิดประมูลแล้ว' : 'กำลังเปิดประมูล'}
+</div>
+
                     <div className="position-absolute top-0 end-0 m-2">
                       <button onClick={() => toggleLike(item.id)} className="btn btn-sm text-white">
                         <img src={item.image} alt="" /><LikeButton auctionId={item.id} />
@@ -86,16 +105,12 @@ const LiveBiddingArea = () => {
                     <div className="dropdown position-absolute top-0 start-50 translate-middle-x mt-2">
                       <button
                         onClick={() => handleActive(item.id)}
-                        className={`btn dropdown-toggle rounded-pill shadow-sm ${
-                          active === item.id ? 'show' : ''
-                        }`}
+                        className={`btn dropdown-toggle rounded-pill shadow-sm \${active === item.id ? 'show' : ''}`}
                       >
                         <i className="bi bi-three-dots-vertical"></i>
                       </button>
                       <ul
-                        className={`dropdown-menu dropdown-menu-end ${
-                          active === item.id ? 'show' : ''
-                        }`}
+                        className={`dropdown-menu dropdown-menu-end \${active === item.id ? 'show' : ''}`}
                       >
                         <li><a className="dropdown-item" href="#"><i className="me-1 bi bi-share"></i>แชร์</a></li>
                         <li><a className="dropdown-item" href="#"><i className="me-1 bi bi-flag"></i>รายงาน</a></li>
@@ -111,11 +126,19 @@ const LiveBiddingArea = () => {
                     </div>
                     <div className="col-12 mt-2">
                       <Link
-                        className="btn btn-primary rounded-pill w-100 btn-sm"
+                        className="btn btn-primary rounded-pill w-100 btn-sm mb-2"
                         href={`/auction/${item.id}`}
                       >
                         เข้าร่วมประมูล
                       </Link>
+                      {userRole === 'admin' && (
+                        <Link
+                          className="btn btn-warning rounded-pill w-100 btn-sm"
+                          href={`/admin/edit-auction/${item.id}`}
+                        >
+                          ✏️ แก้ไขกระทู้
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -123,7 +146,6 @@ const LiveBiddingArea = () => {
             </div>
           ))}
         </div>
-
         {auctions.length === 0 && (
           <div className="text-center mt-5 text-muted">ยังไม่มีรายการประมูลในขณะนี้</div>
         )}

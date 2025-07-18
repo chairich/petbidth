@@ -13,19 +13,47 @@ type NewsItem = {
 
 const FooterOne = () => {
   const [newsList, setNewsList] = useState<NewsItem[]>([]);
+  const [onlineCount, setOnlineCount] = useState<number>(0);
   const supabase = createClientComponentClient();
 
   useEffect(() => {
     const fetchNews = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('store_news')
         .select('id, title, image_url, created_at')
         .order('created_at', { ascending: false })
         .limit(2);
-      setNewsList(data || []);
+
+      if (error) {
+        console.error("Error fetching news:", error);
+      } else {
+        setNewsList(data || []);
+      }
+    };
+
+    const fetchOnlineUsers = async () => {
+      try {
+        const since = new Date(Date.now() - 2 * 60 * 1000).toISOString(); // 2 นาที
+        const { count, error } = await supabase
+          .from('online_users')
+          .select('user_id', { count: 'exact', head: true })
+          .gt('last_active', since);
+
+        if (error) {
+          console.error("Error fetching online users:", error);
+          return;
+        }
+
+        setOnlineCount(count ?? 0);
+      } catch (err) {
+        console.error("Unexpected error fetching online count:", err);
+      }
     };
 
     fetchNews();
+    fetchOnlineUsers();
+    const interval = setInterval(fetchOnlineUsers, 60000); // รีเฟรชทุก 1 นาที
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -89,9 +117,14 @@ const FooterOne = () => {
                 </div>
               </div>
             </div>
-
           </div>
-          <div className="border-top mt-5 pt-4 d-flex flex-column flex-md-row justify-content-between align-items-center text-center">
+
+          {/* แสดงจำนวนผู้ใช้งานออนไลน์ */}
+          <div className="text-center mt-4 text-light">
+            👥 ขณะนี้มีผู้ใช้งานออนไลน์ <strong>{onlineCount}</strong> คน
+          </div>
+
+          <div className="border-top mt-4 pt-4 d-flex flex-column flex-md-row justify-content-between align-items-center text-center">
             <div className="text-sm text-gray-400 mb-2 mb-md-0">
               {new Date().getFullYear()} © All rights reserved by{" "}
               <a href="https://petbidthai.com" className="text-white fw-semibold" target="_blank" rel="noopener noreferrer">

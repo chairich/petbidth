@@ -27,22 +27,19 @@ export default function LiveAuctionPage() {
   const [bidPrice, setBidPrice] = useState('');
 
   useEffect(() => {
-  const fetchSession = async () => {
-    setIsLoadingSession(true);
-    const { data: sessionData, error } = await supabase.auth.getSession();
-    if (!error) setSession(sessionData?.session ?? null);
-    setIsLoadingSession(false);
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+    const fetchSession = async () => {
+      setIsLoadingSession(true);
+      const { data: sessionData, error } = await supabase.auth.getSession();
+      if (!error) setSession(sessionData?.session ?? null);
       setIsLoadingSession(false);
-    });
-
-    return () => subscription?.unsubscribe();
-  };
-  fetchSession();
-}, []);
-
+      const { subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+        setSession(session);
+        setIsLoadingSession(false);
+      });
+      return () => subscription?.unsubscribe();
+    };
+    fetchSession();
+  }, []);
 
   useEffect(() => {
     if (!id) return;
