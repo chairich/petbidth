@@ -32,11 +32,12 @@ export default function LiveAuctionPage() {
       const { data: sessionData, error } = await supabase.auth.getSession();
       if (!error) setSession(sessionData?.session ?? null);
       setIsLoadingSession(false);
-      const { subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-        setSession(session);
-        setIsLoadingSession(false);
-      });
-      return () => subscription?.unsubscribe();
+     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+  setSession(session)
+  setIsLoadingSession(false)
+})
+return () => data?.subscription?.unsubscribe()
+
     };
     fetchSession();
   }, []);
