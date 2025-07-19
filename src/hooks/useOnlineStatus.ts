@@ -1,43 +1,30 @@
-// hooks/useOnlineStatus.ts
-'use client'
+'use client';
 
-import { useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { useEffect } from 'react';
+import { useUser } from '@supabase/auth-helpers-react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 const useOnlineStatus = () => {
-  const supabase = createClientComponentClient()
+  const user = useUser();
+  const supabase = createClientComponentClient();
 
   useEffect(() => {
+    if (!user?.id) return;
+
     const updateOnlineStatus = async () => {
-      const {
-        data: { user },
-        error
-      } = await supabase.auth.getUser()
+      await supabase.from('online_users').upsert({
+        user_id: user.id,
+        user_name: user.user_metadata?.username || user.email || 'anonymous',
+        last_seen: new Date().toISOString(),
+      }, { onConflict: ['user_id'] });
+    };
 
-      if (error || !user) return
+    updateOnlineStatus(); // อัปเดตทันทีเมื่อโหลด
 
-      const { data: profile } = await supabase
-        .from('users')
-        .select('name')
-        .eq('id', user.id)
-        .single()
+    const interval = setInterval(updateOnlineStatus, 30000); // ทุก 30 วินาที
 
-      await supabase
-        .from('online_users')
-        .upsert({
-          user_id: user.id,
-          user_name: profile?.name || '',
-          last_seen: new Date().toISOString(),
-        })
-    }
+    return () => clearInterval(interval);
+  }, [user]);
+};
 
-    updateOnlineStatus()
-    const interval = setInterval(updateOnlineStatus, 60000) // ทุก 1 นาที
-
-    return () => clearInterval(interval)
-  }, [])
-
-  return null
-}
-
-export default useOnlineStatus
+export default useOnlineStatus;
