@@ -68,7 +68,7 @@ const NavMenu = () => {
               <ul className="ft-dd-menu">
                 <li><Link href="/admin/post-auction">📢 โพสต์ประมูล</Link></li>
                 <li><Link href="/admin/banner">🏷 จัดการแบนเนอร์</Link></li>
-                <li><Link href="/admin/news/new">📝 โพสต์กระทู้</Link></li>
+                <li><Link href="/forum/new">📝 โพสต์กระทู้</Link></li>
               </ul>
             </li>
           )}

@@ -72,7 +72,7 @@ const MobileMenus = ({ setOpenMenu, openMenu }: any) => {
 
         {userSession?.id && (
           <>
-            <li><Link href="/post">📝 โพสต์กระทู้</Link></li>
+            <li><Link href="/forum/new">📝 โพสต์กระทู้</Link></li>
             {userRole === 'admin' && (
               <>
                 <li><Link href="/admin/post-auction">📢 โพสต์ประมูล</Link></li>
