@@ -1,4 +1,3 @@
-
 'use client'
 import React, { useState, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
@@ -11,6 +10,7 @@ const CreateAuction = () => {
     description: '',
     start_price: '',
     end_time: '',
+    overlay_text: '', // ✅ เพิ่มฟิลด์ใหม่
   });
   const [images, setImages] = useState<File[]>([]);
   const [coverImageIndex, setCoverImageIndex] = useState(0);
@@ -82,6 +82,7 @@ const CreateAuction = () => {
       end_time: formData.end_time,
       cover_image_index: coverImageIndex,
       images: imageUrls,
+      overlay_text: formData.overlay_text, // ✅ ส่ง overlay ไปด้วย
       created_by: userData.user.id,
       is_closed: false,
       created_at: new Date().toISOString(),
@@ -96,7 +97,7 @@ const CreateAuction = () => {
     }
 
     alert('สร้างกระทู้ประมูลเรียบร้อยแล้ว');
-     router.push(`/auction/${data.id}`);
+    router.push(`/auction/${data.id}`);
   };
 
   return (
@@ -121,6 +122,21 @@ const CreateAuction = () => {
         <div className="mb-3">
           <label>วันเวลาสิ้นสุดการประมูล</label>
           <input type="datetime-local" name="end_time" className="form-control" value={formData.end_time} onChange={handleChange} required />
+        </div>
+
+        <div className="mb-3">
+          <label>ข้อความที่จะแสดงบนภาพแรก (เช่น "ปิดประมูลแล้ว" หรือ "รายการพิเศษ")</label>
+          <textarea
+  name="overlay_text"
+  className="form-control"
+  rows={4}
+  value={formData.overlay_text}
+  onChange={handleChange}
+  placeholder={`ใส่ข้อความ เช่น\n1. ข้อแรก\n2. ข้อสอง\n3. ข้อสาม`}
+/>
+
+
+
         </div>
 
         <div className="mb-3">

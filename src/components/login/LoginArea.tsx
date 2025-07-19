@@ -25,6 +25,19 @@ const LoginArea = () => {
       setIsLoading(false);
     };
     fetchSession();
+
+    // 🔵 โหลดข้อมูลที่จำไว้
+    const saved = localStorage.getItem("savedLogin");
+    if (saved) {
+      try {
+        const { username, password } = JSON.parse(saved);
+        setEmailOrUsername(username);
+        setPassword(password);
+        setRememberMe(true);
+      } catch (e) {
+        // ignore
+      }
+    }
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -81,6 +94,19 @@ const LoginArea = () => {
       role: role
     }), { expires: 1, path: '/' });
 
+    // 🔵 บันทึกถ้าติ๊ก remember me
+    if (rememberMe) {
+      localStorage.setItem(
+        "savedLogin",
+        JSON.stringify({
+          username: emailOrUsername,
+          password: password,
+        })
+      );
+    } else {
+      localStorage.removeItem("savedLogin");
+    }
+
     router.push(redirectTo);
   }
 
@@ -92,7 +118,6 @@ const LoginArea = () => {
             <div className="card login-card shadow-lg">
               <h3 className="mb-4 text-center">Welcome Back!</h3>
 
-              {/* 🔵 ปุ่ม Facebook อยู่ก่อนฟอร์ม */}
               <button
                 onClick={() => signIn("facebook", { callbackUrl: redirectTo })}
                 className="btn btn-outline-primary mb-3 w-100 rounded-pill"
@@ -104,6 +129,8 @@ const LoginArea = () => {
                 <div className="form-group mb-3">
                   <input
                     type="text"
+                    name="username"
+                    autoComplete="username"
                     placeholder="อีเมลหรือชื่อผู้ใช้"
                     className="form-control"
                     required
@@ -115,6 +142,8 @@ const LoginArea = () => {
                 <div className="form-group mb-3">
                   <input
                     type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    autoComplete="current-password"
                     placeholder="รหัสผ่าน"
                     className="form-control"
                     required

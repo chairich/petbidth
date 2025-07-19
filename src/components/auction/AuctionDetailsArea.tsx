@@ -154,9 +154,36 @@ return () => data?.subscription?.unsubscribe()
       <div className="row g-4">
         <div className="col-lg-6">
           <div className="border rounded overflow-hidden bg-dark mb-3">
-            {auction.images?.[selectedImageIndex] && (
-              <Image src={auction.images[selectedImageIndex]} alt="auction" width={600} height={600} className="img-fluid w-100" priority />
-            )}
+  {auction.images?.[selectedImageIndex] && (
+    <div className="position-relative">
+      <Image
+        src={auction.images[selectedImageIndex]}
+        alt="auction"
+        width={600}
+        height={600}
+        className="img-fluid w-100"
+        priority
+      />
+      {auction.overlay_text &&
+        selectedImageIndex === (auction.cover_image_index ?? 0) && (
+          <div
+            className="position-absolute top-0 start-0 m-3 px-3 py-2 bg-dark bg-opacity-75 text-white rounded small z-2"
+            style={{
+              whiteSpace: 'pre-wrap',
+              maxWidth: '90%',
+              fontSize: '14px',
+              lineHeight: '1.5',
+            }}
+          >
+            {auction.overlay_text}
+          </div>
+        )}
+    </div>
+
+
+
+)}
+
           </div>
           <div className="d-flex gap-2">
             {auction.images?.slice(0, 5).map((img: string, idx: number) => (
