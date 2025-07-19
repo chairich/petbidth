@@ -25,6 +25,8 @@ export default function LiveAuctionPage() {
   const [isLoadingSession, setIsLoadingSession] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [bidPrice, setBidPrice] = useState('');
+  const [isUrgent, setIsUrgent] = useState(false);
+
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -93,9 +95,10 @@ return () => data?.subscription?.unsubscribe()
   };
 
   const updateTimeLeft = (endTime: string) => {
-    const now = dayjs().tz('Asia/Bangkok');
+    const nowTime = dayjs().tz('Asia/Bangkok');
     const end = dayjs(endTime).tz('Asia/Bangkok');
-    const diff = end.diff(now);
+    const diff = end.diff(nowTime);
+    setIsUrgent(diff <= 10000);
 
     if (diff <= 0) {
       setTimeLeft('หมดเวลา');
@@ -198,7 +201,11 @@ return () => data?.subscription?.unsubscribe()
           <h2>{auction.title}</h2>
           <p>{auction.description}</p>
           <div className="my-3 h5 text-warning">ราคาปัจจุบัน: {auction.current_price.toLocaleString()} บาท</div>
-          <div className="mb-3">เวลาที่เหลือ: <strong>{timeLeft}</strong></div>
+          <div className="mb-3">
+  เวลาที่เหลือ:{" "}
+  <strong style={{ color: isUrgent ? "red" : "inherit" }}>{timeLeft}</strong>
+</div>
+
 
           <div className="my-3">
             <p>ราคานำโดย:
@@ -211,12 +218,29 @@ return () => data?.subscription?.unsubscribe()
             </p>
           </div>
 
-          <button className="btn btn-primary rounded-pill w-100" onClick={() => {
-            if (timeLeft === 'หมดเวลา') return alert("เวลาประมูลหมดแล้วไม่สามารถเคาะบิดได้");
-            const current = Number(auction.current_price ?? auction.start_price ?? 0);
-            setBidPrice((current + 100).toString());
-            setShowModal(true);
-          }}>เคาะประมูล</button>
+          <button
+  className="btn btn-primary rounded-pill w-100"
+  onClick={() => {
+    const now = dayjs().tz('Asia/Bangkok');
+    const start = dayjs(auction.start_time).tz('Asia/Bangkok');
+    const end = dayjs(auction.end_time).tz('Asia/Bangkok');
+
+    if (now.isBefore(start)) {
+      return alert("ยังไม่ถึงเวลาเริ่มประมูล");
+    }
+
+    if (now.isAfter(end)) {
+      return alert("เวลาประมูลหมดแล้ว ไม่สามารถเคาะบิดได้");
+    }
+
+    const current = Number(auction.current_price ?? auction.start_price ?? 0);
+    setBidPrice((current + 100).toString());
+    setShowModal(true);
+  }}
+>
+  เคาะประมูล
+</button>
+
 
           {session?.user?.id === auction.created_by && (
             <button onClick={handleEndAuction} className="btn btn-danger rounded-pill w-100 mt-3">

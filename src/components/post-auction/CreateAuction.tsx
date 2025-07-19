@@ -1,7 +1,14 @@
+
 'use client'
 import React, { useState, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const CreateAuction = () => {
   const router = useRouter();
@@ -9,9 +16,14 @@ const CreateAuction = () => {
     title: '',
     description: '',
     start_price: '',
+    start_time: '',  // เพิ่ม start_time
     end_time: '',
-    overlay_text: '', // ✅ เพิ่มฟิลด์ใหม่
-  });
+    overlay_text: `1.ไม่พร้อมห้ามเคาะราคาฝ่าฝืนแบนทันที
+2.นกอายุน้อยรับเองหรือขนส่งระยะสั้นๆ
+3.ชำระผ่านแอดมินหรือเจ้าของนกได้
+4.ใส่ราคาผิดแจ้งแอดมินทันที
+5.ผู้ชนะชำระเงินภายใน 2 วัน`,
+});
   const [images, setImages] = useState<File[]>([]);
   const [coverImageIndex, setCoverImageIndex] = useState(0);
   const [uploading, setUploading] = useState(false);
@@ -76,17 +88,19 @@ const CreateAuction = () => {
     }
 
     const newAuction = {
-      title: formData.title,
-      description: formData.description,
-      start_price: parseFloat(formData.start_price),
-      end_time: formData.end_time,
-      cover_image_index: coverImageIndex,
-      images: imageUrls,
-      overlay_text: formData.overlay_text, // ✅ ส่ง overlay ไปด้วย
-      created_by: userData.user.id,
-      is_closed: false,
-      created_at: new Date().toISOString(),
-    };
+  title: formData.title,
+  description: formData.description,
+  start_price: parseFloat(formData.start_price),
+  start_time: dayjs.tz(formData.start_time, 'Asia/Bangkok').format(),
+  end_time: dayjs.tz(formData.end_time, 'Asia/Bangkok').format(),
+  cover_image_index: coverImageIndex,
+  images: imageUrls,
+  overlay_text: formData.overlay_text,
+  created_by: userData.user.id,
+  is_closed: false,
+  created_at: dayjs().tz('Asia/Bangkok').format(),
+};
+
 
     const { data, error } = await supabase.from('auctions').insert(newAuction).select().single();
 
@@ -108,38 +122,26 @@ const CreateAuction = () => {
           <label>ชื่อประมูล</label>
           <input type="text" name="title" className="form-control" value={formData.title} onChange={handleChange} required />
         </div>
-
         <div className="mb-3">
           <label>รายละเอียด</label>
           <textarea name="description" className="form-control" rows={4} value={formData.description} onChange={handleChange} required></textarea>
         </div>
-
         <div className="mb-3">
           <label>ราคาเริ่มต้น (บาท)</label>
           <input type="number" name="start_price" className="form-control" value={formData.start_price} onChange={handleChange} required min="0" step="0.01" />
         </div>
-
+        <div className="mb-3">
+          <label>วันเวลาเริ่มต้น</label>
+          <input type="datetime-local" name="start_time" className="form-control" value={formData.start_time} onChange={handleChange} required />
+        </div>
         <div className="mb-3">
           <label>วันเวลาสิ้นสุดการประมูล</label>
           <input type="datetime-local" name="end_time" className="form-control" value={formData.end_time} onChange={handleChange} required />
         </div>
-
         <div className="mb-3">
-          <label>ข้อความที่จะแสดงบนภาพแรก (เช่น "ปิดประมูลแล้ว" หรือ "รายการพิเศษ")</label>
-          <textarea
-  name="overlay_text"
-  className="form-control"
-  rows={4}
-  value={formData.overlay_text}
-  onChange={handleChange}
-  placeholder={`อ่านก่อนประมูล\n 1. หลังจบประมูลผู้ชนะชำระยอดภายใน 2 วันหรือตกลงกันเอง \n 2. ชำระผ่านเวปไซด์ได้หรือชำระโดยตรงกับผู้ลงประมูล\n 3. ตรวจสอบสถานทีอยู่นกก่อนประมูล เพราะบางที่อาจจะไม่สะดวกจัดส่ง โดยทักสอบถามเจ้าของนกก่อนได้ตาม เบอร์โทร หรือ ที่เฟสบุ๊ค \n 4. นกเด็กหรือลูกป้อน ผู้ประมูลควรอยู่ในพื้นที่ใกล้เคียง ถ้าเดินไกลนกอาจป่วย \n 5. ข้อสำคัญ ผู้ไม่พร้อมที่จะร่วมประมูล อย่าเคาะราคาเล่น ขอบคุณครับ
-`}
-/>
-
-
-
+          <label>ข้อความที่จะแสดงบนภาพแรก</label>
+          <textarea name="overlay_text" className="form-control" rows={3} value={formData.overlay_text} onChange={handleChange} />
         </div>
-
         <div className="mb-3">
           <label>อัปโหลดรูปภาพ (สูงสุด 5 รูป)</label>
           <input type="file" multiple accept="image/*" className="form-control" onChange={handleImageChange} />
@@ -154,7 +156,6 @@ const CreateAuction = () => {
             </div>
           )}
         </div>
-
         <button type="submit" className="btn btn-primary" disabled={uploading}>
           {uploading ? 'กำลังสร้าง...' : 'สร้างกระทู้ประมูล'}
         </button>
