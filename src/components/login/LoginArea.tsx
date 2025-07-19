@@ -49,7 +49,7 @@ const LoginArea = () => {
       const { data: usernameLookup, error: lookupError } = await supabase
         .from('users')
         .select('email')
-        .eq('username', emailOrUsername)
+        .eq('name', emailOrUsername)
         .single();
 
       if (lookupError || !usernameLookup?.email) {
