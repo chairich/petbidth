@@ -1,83 +1,86 @@
+
 'use client';
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useUser } from '@supabase/auth-helpers-react';
 
-const NewThreadForm = () => {
+export default function NewThreadForm() {
+  const supabase = createClientComponentClient();
+  const user = useUser();
+  const router = useRouter();
+
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [role, setRole] = useState('');
-  const supabase = createClientComponentClient();
-  const router = useRouter();
-  const user = useUser();
 
-  useEffect(() => {
-    if (image) {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImage(file);
+
       const reader = new FileReader();
       reader.onloadend = () => setPreviewUrl(reader.result as string);
-      reader.readAsDataURL(image);
+      reader.readAsDataURL(file);
     } else {
       setPreviewUrl(null);
     }
-  }, [image]);
+  };
 
-  useEffect(() => {
-    const fetchRole = async () => {
-      if (!user) return;
-      const { data } = await supabase.from('users').select('role').eq('id', user.id).single();
-      if (data?.role) setRole(data.role);
-    };
-    fetchRole();
-  }, [user]);
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    let imageUrl = null;
 
+    let imageUrl = null;
     if (image) {
       const fileExt = image.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
       const { data, error } = await supabase.storage.from('forum-images').upload(fileName, image);
-
       if (error) {
-        alert('อัปโหลดรูปภาพล้มเหลว: ' + error.message);
+        console.error('Image upload error:', error.message);
         return;
       }
-
-      const { data: publicUrlData } = supabase
-        .storage
-        .from('forum-images')
-        .getPublicUrl(data.path);
-      imageUrl = publicUrlData?.publicUrl;
+      imageUrl = data?.path;
     }
 
-    const { error } = await supabase.from('threads').insert({
+    const { error } = await supabase.from('threads').insert([{
       title,
       content,
       image_url: imageUrl,
       user_id: user?.id,
-      is_admin: role === 'admin'
-    });
+    }]);
 
-    if (error) {
-      alert('เกิดข้อผิดพลาดในการโพสต์: ' + error.message);
-    } else {
+    if (!error) {
       router.push('/forum');
+    } else {
+      console.error('Error inserting thread:', error.message);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <input type="text" placeholder="หัวข้อกระทู้" value={title} onChange={(e) => setTitle(e.target.value)} className="form-control" required />
-      <textarea rows={5} placeholder="เนื้อหากระทู้" value={content} onChange={(e) => setContent(e.target.value)} className="form-control" required />
-      <input type="file" accept="image/*" onChange={(e) => setImage(e.target.files[0])} />
-      {previewUrl && <img src={previewUrl} alt="preview" className="rounded border w-64 mt-2" />}
-      <button type="submit" className="btn btn-primary">โพสต์</button>
+      <input
+        type="text"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="หัวข้อกระทู้"
+        className="w-full p-2 border rounded"
+        required
+      />
+      <textarea
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        placeholder="รายละเอียดกระทู้"
+        className="w-full p-2 border rounded"
+        rows={5}
+        required
+      />
+      <input type="file" accept="image/*" onChange={handleImageChange} />
+      {previewUrl && <img src={previewUrl} alt="Preview" className="w-48 mt-2 rounded" />}
+      <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
+        โพสต์กระทู้
+      </button>
     </form>
   );
-};
-
-export default NewThreadForm;
+}
