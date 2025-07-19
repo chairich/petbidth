@@ -98,7 +98,7 @@ const MobileMenus = ({ setOpenMenu, openMenu }: any) => {
       {!userSession?.id && (
         <>
           <li><Link href="/login">🔐 เข้าสู่ระบบ</Link></li>
-          <li><Link href="/register">🆕 สมัครสมาชิก</Link></li>
+          <li><Link href="/">🆕 สมัครสมาชิก</Link></li>
         </>
       )}
 </ul>
