@@ -8,7 +8,7 @@ const NewThreadForm = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [image, setImage] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [role, setRole] = useState('');
   const supabase = createClientComponentClient();
   const router = useRouter();
@@ -17,7 +17,7 @@ const NewThreadForm = () => {
   useEffect(() => {
     if (image) {
       const reader = new FileReader();
-      reader.onloadend = () => setPreviewUrl(reader.result);
+      reader.onloadend = () => setPreviewUrl(reader.result as string);
       reader.readAsDataURL(image);
     } else {
       setPreviewUrl(null);
