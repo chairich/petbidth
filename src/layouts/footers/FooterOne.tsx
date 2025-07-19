@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import useOnlineStatus from "@/hooks/useOnlineStatus";
+import useTrackVisitor from "@/hooks/useTrackVisitor";
 import { useUser } from "@supabase/auth-helpers-react"; // หรือดึงจาก session
 import React, { useEffect, useState } from "react";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -20,6 +21,7 @@ const FooterOne = () => {
 const user = useUser();
 
   useOnlineStatus(); // ✅ เรียกตรงนี้ — เพื่อให้ footer ใช้ hook นี้ทุกครั้งที่โหลด
+  useTrackVisitor(); // ✅ บันทึกผู้เข้าชมทุกคน
   useEffect(() => {
     const fetchNews = async () => {
       const { data, error } = await supabase
@@ -39,9 +41,9 @@ const user = useUser();
       try {
         const since = new Date(Date.now() - 2 * 60 * 1000).toISOString(); // 2 นาที
         const { count, error } = await supabase
-          .from('online_users')
-          .select('user_id', { count: 'exact', head: true })
-          .gt('last_seen', since);
+          .from('page_views')
+          .select('ip_address', { count: 'exact', head: true })
+          .gt('viewed_at', since);
 
 
         if (error) {
