@@ -75,25 +75,33 @@ return () => data?.subscription?.unsubscribe()
   };
 
   const handleAutoEndLogic = async (auctionData: any, bids: any[]) => {
-    if (!auctionData || auctionData.is_closed) return;
+  if (!auctionData || auctionData.is_closed) return;
+
+  if (bids.length === 0) {
     const createdAt = new Date(auctionData.created_at).getTime();
     const now = new Date().getTime();
-
-    if (bids.length === 0) {
-      if (now - createdAt > 10 * 60 * 1000) {
-        await supabase.from('auctions').update({ is_closed: true }).eq('id', auctionData.id);
-        console.log("🛑 ปิดประมูลเนื่องจากไม่มีบิดใน 10 นาที");
-      }
-    } else {
-      const latestBidTime = new Date(bids[0].created_at).getTime();
-      const proposedEndTime = new Date(latestBidTime + 4 * 60 * 1000).toISOString();
-      if (proposedEndTime !== auctionData.end_time) {
-        await supabase.from('auctions').update({ end_time: proposedEndTime }).eq('id', auctionData.id);
-        console.log("⏱️ ขยายเวลาประมูล 4 นาที");
-      }
+    if (now - createdAt > 10 * 60 * 1000) {
+      await supabase.from('auctions').update({ is_closed: true }).eq('id', auctionData.id);
+      console.log("🛑 ปิดประมูลเพราะไม่มีคนบิดใน 10 นาที");
     }
-  };
+  } else {
+    const latestBidTime = new Date(bids[0].created_at).getTime();
+    const currentEndTime = new Date(auctionData.end_time).getTime();
 
+    // ✅ ถ้ามีเคาะใน 1 นาทีสุดท้ายก่อน end_time ⇒ ต่อเวลาอีก 4 นาที
+    const oneMinuteBeforeEnd = currentEndTime - 60 * 1000;
+
+    if (latestBidTime >= oneMinuteBeforeEnd && latestBidTime <= currentEndTime) {
+      const newEndTime = new Date(latestBidTime + 4 * 60 * 1000);
+      await supabase
+        .from('auctions')
+        .update({ end_time: newEndTime.toISOString() })
+        .eq('id', auctionData.id);
+
+      console.log("⏱️ ขยายเวลา 4 นาทีจากการเคาะใน 1 นาทีสุดท้าย:", newEndTime.toLocaleString());
+    }
+  }
+};
   const updateTimeLeft = (endTime: string) => {
     const nowTime = dayjs().tz('Asia/Bangkok');
     const end = dayjs(endTime).tz('Asia/Bangkok');
@@ -211,7 +219,7 @@ return () => data?.subscription?.unsubscribe()
             <p>ราคานำโดย:
               {bids.length > 0 ? (
                 <span>
-                  <img src={bids[0]?.users?.avatar_url || 'https://default-avatar-url.com'} className="rounded-circle me-2" width="24" height="24" alt="User Avatar" />
+                  <img src={bids[0]?.users?.avatar_url || '/icons/icon-512x512.png'} className="rounded-circle me-2" width="24" height="24" alt="User Avatar" />
                   {bids[0]?.users?.name ?? 'ไม่ทราบชื่อ'} - {bids[0]?.bid_price.toLocaleString()} บาท
                 </span>
               ) : 'ยังไม่มีการประมูล'}
@@ -226,7 +234,7 @@ return () => data?.subscription?.unsubscribe()
     const end = dayjs(auction.end_time).tz('Asia/Bangkok');
 
     if (now.isBefore(start)) {
-      return alert("ยังไม่ถึงเวลาเริ่มประมูล");
+      return alert(`ยังไม่ถึงเวลาเริ่มเคาะประมูล\nเริ่มเคาะประมูล: ${start.format('D MMMM YYYY เวลา HH:mm')} น.`);
     }
 
     if (now.isAfter(end)) {
