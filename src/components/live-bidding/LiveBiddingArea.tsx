@@ -7,6 +7,14 @@ import Link from 'next/link'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
 import LikeButton from '@/components/LikeButton'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
+dayjs.extend(duration)
+
 dayjs.extend(duration)
 
 const LiveBiddingArea = () => {
@@ -45,27 +53,28 @@ const LiveBiddingArea = () => {
   }, [])
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const updatedCountdowns: { [key: string]: string } = {}
+  const interval = setInterval(() => {
+    const updatedCountdowns: { [key: string]: string } = {}
 
-      auctions.forEach((auction) => {
-        const now = dayjs()
-        const end = dayjs(auction.end_time)
-        const diff = end.diff(now)
+    auctions.forEach((auction) => {
+      const now = dayjs().tz('Asia/Bangkok') // เวลาปัจจุบันในไทย
+      const end = dayjs.utc(auction.end_time).tz('Asia/Bangkok') // เวลาจาก DB (UTC) แปลงเป็นเวลาไทย
+      const diff = end.diff(now)
 
-        if (diff > 0) {
-          const dur = dayjs.duration(diff)
-          updatedCountdowns[auction.id] = `เหลือเวลา ${dur.days()} วัน ${dur.hours()} ชม ${dur.minutes()} นาที ${dur.seconds()} ว`
-        } else {
-          updatedCountdowns[auction.id] = `หมดเวลาแล้ว`
-        }
-      })
+      if (diff > 0) {
+        const dur = dayjs.duration(diff)
+        updatedCountdowns[auction.id] = `เหลือเวลา ${dur.days()} วัน ${dur.hours()} ชม ${dur.minutes()} นาที ${dur.seconds()} ว`
+      } else {
+        updatedCountdowns[auction.id] = `หมดเวลาแล้ว`
+      }
+    })
 
-      setCountdowns(updatedCountdowns)
-    }, 1000)
+    setCountdowns(updatedCountdowns)
+  }, 1000)
 
-    return () => clearInterval(interval)
-  }, [auctions])
+  return () => clearInterval(interval)
+}, [auctions])
+
 
   const handleActive = (id: number) => {
     setActive(active === id ? null : id)
