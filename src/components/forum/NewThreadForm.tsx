@@ -1,102 +1,81 @@
-
 'use client';
-
-import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useUser } from '@supabase/auth-helpers-react';
 
 const NewThreadForm = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [image, setImage] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [image, setImage] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [role, setRole] = useState('');
+  const supabase = createClientComponentClient();
+  const router = useRouter();
+  const user = useUser();
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setImage(file);
-
-    if (file) {
+  useEffect(() => {
+    if (image) {
       const reader = new FileReader();
-      reader.onloadend = () => setPreviewUrl(reader.result as string);
-      reader.readAsDataURL(file);
+      reader.onloadend = () => setPreviewUrl(reader.result);
+      reader.readAsDataURL(image);
     } else {
       setPreviewUrl(null);
     }
-  };
+  }, [image]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    const fetchRole = async () => {
+      if (!user) return;
+      const { data } = await supabase.from('users').select('role').eq('id', user.id).single();
+      if (data?.role) setRole(data.role);
+    };
+    fetchRole();
+  }, [user]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !content) return;
-
-    setIsSubmitting(true);
-
-    let uploadedImageUrl: string | null = null;
+    let imageUrl = null;
 
     if (image) {
       const fileExt = image.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
-      const { data, error } = await supabase.storage
-        .from('forum-images')
-        .upload(fileName, image);
+      const { data, error } = await supabase.storage.from('forum-images').upload(fileName, image);
 
       if (error) {
-        console.error('Upload error:', error);
-        setIsSubmitting(false);
+        alert('อัปโหลดรูปภาพล้มเหลว: ' + error.message);
         return;
       }
 
-      uploadedImageUrl = data?.path ?? null;
-      setImageUrl(uploadedImageUrl);
+      const { data: publicUrlData } = supabase
+        .storage
+        .from('forum-images')
+        .getPublicUrl(data.path);
+      imageUrl = publicUrlData?.publicUrl;
     }
 
-    const { error } = await supabase.from('threads').insert([{
+    const { error } = await supabase.from('threads').insert({
       title,
       content,
-      image_url: uploadedImageUrl,
-    }]);
+      image_url: imageUrl,
+      user_id: user?.id,
+      is_admin: role === 'admin'
+    });
 
     if (error) {
-      console.error('Insert error:', error);
+      alert('เกิดข้อผิดพลาดในการโพสต์: ' + error.message);
     } else {
-      setTitle('');
-      setContent('');
-      setImage(null);
-      setPreviewUrl(null);
+      router.push('/forum');
     }
-
-    setIsSubmitting(false);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <input
-        type="text"
-        placeholder="หัวข้อกระทู้"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="w-full p-2 border rounded"
-      />
-      <textarea
-        placeholder="เนื้อหากระทู้"
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        className="w-full p-2 border rounded"
-      />
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleImageChange}
-        className="w-full"
-      />
-      {previewUrl && <img src={previewUrl} alt="Preview" className="w-40 h-auto mt-2" />}
-      <button
-        type="submit"
-        className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? 'กำลังโพสต์...' : 'โพสต์กระทู้'}
-      </button>
+      <input type="text" placeholder="หัวข้อกระทู้" value={title} onChange={(e) => setTitle(e.target.value)} className="form-control" required />
+      <textarea rows={5} placeholder="เนื้อหากระทู้" value={content} onChange={(e) => setContent(e.target.value)} className="form-control" required />
+      <input type="file" accept="image/*" onChange={(e) => setImage(e.target.files[0])} />
+      {previewUrl && <img src={previewUrl} alt="preview" className="rounded border w-64 mt-2" />}
+      <button type="submit" className="btn btn-primary">โพสต์</button>
     </form>
   );
 };

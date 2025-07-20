@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,10 +9,8 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { supabase } from '@/lib/supabaseClient';
 
-
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
 
 export default function LiveAuctionPage() {
   const { id } = useParams();
@@ -27,19 +24,17 @@ export default function LiveAuctionPage() {
   const [bidPrice, setBidPrice] = useState('');
   const [isUrgent, setIsUrgent] = useState(false);
 
-
   useEffect(() => {
     const fetchSession = async () => {
       setIsLoadingSession(true);
       const { data: sessionData, error } = await supabase.auth.getSession();
       if (!error) setSession(sessionData?.session ?? null);
       setIsLoadingSession(false);
-     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-  setSession(session)
-  setIsLoadingSession(false)
-})
-return () => data?.subscription?.unsubscribe()
-
+      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+        setSession(session);
+        setIsLoadingSession(false);
+      });
+      return () => data?.subscription?.unsubscribe();
     };
     fetchSession();
   }, []);
@@ -61,7 +56,7 @@ return () => data?.subscription?.unsubscribe()
   const fetchAuction = async () => {
     const { data } = await supabase
       .from('auctions')
-      .select('*, bids(*, users:users!bids_user_id_fkey(*)), creator:users!auctions_created_by_fkey(*)')
+      .select('*, bids(bid_price, bid_time, created_at, user_id, users:users!bids_user_id_fkey(*)), creator:users!auctions_created_by_fkey(*)')
       .eq('id', id)
       .order('created_at', { referencedTable: 'bids', ascending: false })
       .single();
@@ -75,49 +70,49 @@ return () => data?.subscription?.unsubscribe()
   };
 
   const handleAutoEndLogic = async (auctionData: any, bids: any[]) => {
-  if (!auctionData || auctionData.is_closed) return;
+    if (!auctionData || auctionData.is_closed) return;
 
-  if (bids.length === 0) {
-    const createdAt = new Date(auctionData.created_at).getTime();
-    const now = new Date().getTime();
-    if (now - createdAt > 10 * 60 * 1000) {
-      await supabase.from('auctions').update({ is_closed: true }).eq('id', auctionData.id);
-      console.log("🛑 ปิดประมูลเพราะไม่มีคนบิดใน 10 นาที");
-    }
-  } else {
-    const latestBidTime = new Date(bids[0].created_at).getTime();
-    const currentEndTime = new Date(auctionData.end_time).getTime();
-
-    // ✅ ถ้ามีเคาะใน 1 นาทีสุดท้ายก่อน end_time ⇒ ต่อเวลาอีก 4 นาที
-    const oneMinuteBeforeEnd = currentEndTime - 60 * 1000;
-
-    if (latestBidTime >= oneMinuteBeforeEnd && latestBidTime <= currentEndTime) {
-      const newEndTime = new Date(latestBidTime + 4 * 60 * 1000);
-      await supabase
-        .from('auctions')
-        .update({ end_time: newEndTime.toISOString() })
-        .eq('id', auctionData.id);
-
-      console.log("⏱️ ขยายเวลา 4 นาทีจากการเคาะใน 1 นาทีสุดท้าย:", newEndTime.toLocaleString());
-    }
-  }
-};
-  const updateTimeLeft = (endTime: string) => {
-    const nowTime = dayjs().tz('Asia/Bangkok');
-    const end = dayjs(endTime).tz('Asia/Bangkok');
-    const diff = end.diff(nowTime);
-    setIsUrgent(diff <= 10000);
-
-    if (diff <= 0) {
-      setTimeLeft('หมดเวลา');
+    if (bids.length === 0) {
+      const createdAt = new Date(auctionData.created_at).getTime();
+      const now = new Date().getTime();
+      if (now - createdAt > 10 * 60 * 1000) {
+        await supabase.from('auctions').update({ is_closed: true }).eq('id', auctionData.id);
+        console.log("🛑 ปิดประมูลเพราะไม่มีคนบิดใน 10 นาที");
+      }
     } else {
-      const seconds = Math.floor((diff / 1000) % 60);
-      const minutes = Math.floor((diff / 1000 / 60) % 60);
-      const hours = Math.floor((diff / 1000 / 60 / 60) % 24);
-      const days = Math.floor(diff / 1000 / 60 / 60 / 24);
-      setTimeLeft(`${days} วัน ${hours} ชม. ${minutes} นาที ${seconds} วิ`);
+      const latestBidTime = new Date(bids[0].bid_time).getTime();
+      const currentEndTime = new Date(auctionData.end_time).getTime();
+      const oneMinuteBeforeEnd = currentEndTime - 60 * 1000;
+
+      const newEndTime = latestBidTime + 4 * 60 * 1000;
+if (newEndTime > currentEndTime) {
+  await supabase
+    .from('auctions')
+    .update({ end_time: new Date(newEndTime).toISOString() })
+    .eq('id', auctionData.id);
+  console.log("⏰ ต่อเวลา 4 นาทีหลังการบิด");
+}
+
     }
   };
+
+  const updateTimeLeft = (endTime: string) => {
+  const nowTime = dayjs().tz('Asia/Bangkok');
+  const end = dayjs.utc(endTime).tz('Asia/Bangkok'); // ✅ แก้ตรงนี้
+  const diff = end.diff(nowTime);
+  setIsUrgent(diff <= 30000);
+
+  if (diff <= 0) {
+    setTimeLeft('หมดเวลา');
+  } else {
+    const seconds = Math.floor((diff / 1000) % 60);
+    const minutes = Math.floor((diff / 1000 / 60) % 60);
+    const hours = Math.floor((diff / 1000 / 60 / 60) % 24);
+    const days = Math.floor(diff / 1000 / 60 / 60 / 24);
+    setTimeLeft(`${days} วัน ${hours} ชม. ${minutes} นาที ${seconds} วิ`);
+  }
+};
+
 
   const handleEndAuction = async () => {
     const { error } = await supabase
@@ -147,6 +142,7 @@ return () => data?.subscription?.unsubscribe()
       auction_id: auction.id,
       user_id: session?.user?.id,
       bid_price: newBid,
+      bid_time: dayjs().tz('Asia/Bangkok').toISOString(),
     }]);
 
     if (!error) {
@@ -157,6 +153,8 @@ return () => data?.subscription?.unsubscribe()
       alert("บันทึกการบิดล้มเหลว");
     }
   };
+
+
 
   if (!auction || isLoadingSession) return <div className="p-4 text-center text-white">กำลังโหลดข้อมูล...</div>;
 
@@ -228,23 +226,24 @@ return () => data?.subscription?.unsubscribe()
 
           <button
   className="btn btn-primary rounded-pill w-100"
-  onClick={() => {
-    const now = dayjs().tz('Asia/Bangkok');
-    const start = dayjs(auction.start_time).tz('Asia/Bangkok');
-    const end = dayjs(auction.end_time).tz('Asia/Bangkok');
+ onClick={() => {
+  const now = dayjs().tz('Asia/Bangkok');
+  const start = dayjs.utc(auction.start_time).tz('Asia/Bangkok'); // ✅ ต้องใส่ .utc() เช่นกัน
+  const end = dayjs.utc(auction.end_time).tz('Asia/Bangkok');     // ✅
 
-    if (now.isBefore(start)) {
-      return alert(`ยังไม่ถึงเวลาเริ่มเคาะประมูล\nเริ่มเคาะประมูล: ${start.format('D MMMM YYYY เวลา HH:mm')} น.`);
-    }
+  if (now.isBefore(start)) {
+    return alert(`ยังไม่ถึงเวลาเริ่มเคาะประมูล\nเริ่มเคาะประมูล: ${start.format('D MMMM YYYY เวลา HH:mm')} น.`);
+  }
 
-    if (now.isAfter(end)) {
-      return alert("เวลาประมูลหมดแล้ว ไม่สามารถเคาะบิดได้");
-    }
+  if (now.isAfter(end)) {
+    return alert("เวลาประมูลหมดแล้ว ไม่สามารถเคาะบิดได้");
+  }
 
-    const current = Number(auction.current_price ?? auction.start_price ?? 0);
-    setBidPrice((current + 100).toString());
-    setShowModal(true);
-  }}
+  const current = Number(auction.current_price ?? auction.start_price ?? 0);
+  setBidPrice((current + 100).toString());
+  setShowModal(true);
+}}
+
 >
   เคาะประมูล
 </button>

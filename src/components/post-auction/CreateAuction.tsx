@@ -16,14 +16,14 @@ const CreateAuction = () => {
     title: '',
     description: '',
     start_price: '',
-    start_time: '',  // เพิ่ม start_time
-    end_time: '',
+    start_time: '',
     overlay_text: `1.ไม่พร้อมห้ามเคาะราคาฝ่าฝืนแบนทันที
 2.นกอายุน้อยรับเองหรือขนส่งระยะสั้นๆ
 3.ชำระผ่านแอดมินหรือเจ้าของนกได้
 4.ใส่ราคาผิดแจ้งแอดมินทันที
 5.ผู้ชนะชำระเงินภายใน 2 วัน`,
-});
+  });
+
   const [images, setImages] = useState<File[]>([]);
   const [coverImageIndex, setCoverImageIndex] = useState(0);
   const [uploading, setUploading] = useState(false);
@@ -64,7 +64,7 @@ const CreateAuction = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.description || !formData.start_price || !formData.end_time) {
+    if (!formData.title || !formData.description || !formData.start_price || !formData.start_time) {
       alert('กรุณากรอกข้อมูลให้ครบทุกช่อง');
       return;
     }
@@ -87,20 +87,23 @@ const CreateAuction = () => {
       return;
     }
 
-    const newAuction = {
-  title: formData.title,
-  description: formData.description,
-  start_price: parseFloat(formData.start_price),
-  start_time: dayjs.tz(formData.start_time, 'Asia/Bangkok').format(),
-  end_time: dayjs.tz(formData.end_time, 'Asia/Bangkok').format(),
-  cover_image_index: coverImageIndex,
-  images: imageUrls,
-  overlay_text: formData.overlay_text,
-  created_by: userData.user.id,
-  is_closed: false,
-  created_at: dayjs().tz('Asia/Bangkok').format(),
-};
+    const startTime = dayjs.tz(formData.start_time, 'Asia/Bangkok').utc(); // ✅ แปลงเป็น UTC
+const endTime = startTime.add(10, 'minute'); // ✅ ยังใช้ add เหมือนเดิม
 
+
+    const newAuction = {
+      title: formData.title,
+      description: formData.description,
+      start_price: parseFloat(formData.start_price),
+      start_time: startTime.format(),
+      end_time: endTime.format(),
+      cover_image_index: coverImageIndex,
+      images: imageUrls,
+      overlay_text: formData.overlay_text,
+      created_by: userData.user.id,
+      is_closed: false,
+      created_at: dayjs().tz('Asia/Bangkok').format(),
+    };
 
     const { data, error } = await supabase.from('auctions').insert(newAuction).select().single();
 
@@ -133,10 +136,6 @@ const CreateAuction = () => {
         <div className="mb-3">
           <label>วันเวลาเริ่มต้น</label>
           <input type="datetime-local" name="start_time" className="form-control" value={formData.start_time} onChange={handleChange} required />
-        </div>
-        <div className="mb-3">
-          <label>วันเวลาสิ้นสุดการประมูล</label>
-          <input type="datetime-local" name="end_time" className="form-control" value={formData.end_time} onChange={handleChange} required />
         </div>
         <div className="mb-3">
           <label>ข้อความที่จะแสดงบนภาพแรก</label>
