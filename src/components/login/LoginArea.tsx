@@ -118,12 +118,7 @@ const LoginArea = () => {
             <div className="card login-card shadow-lg">
               <h3 className="mb-4 text-center">Welcome Back!</h3>
 
-              <button
-                onClick={() => signIn("facebook", { callbackUrl: redirectTo })}
-                className="btn btn-outline-primary mb-3 w-100 rounded-pill"
-              >
-                <i className="fab fa-facebook me-2"></i> เข้าสู่ระบบด้วย Facebook
-              </button>
+              
 
               <form onSubmit={handleLogin}>
                 <div className="form-group mb-3">
@@ -167,19 +162,18 @@ const LoginArea = () => {
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
                   />
-                  <label className="form-check-label" htmlFor="rememberMe">
+                  <label className="form-check-label" htmlFor="rememberMe" color="#c2d4f8">
                     จดจำรหัสผ่านไว้
                   </label>
                 </div>
 
-                <button type="submit" className="btn btn-success w-100">
+                <button type="submit" className="btn btn-success w-100" color="#c2d4f8">
                   เข้าสู่ระบบ
                 </button>
               </form>
 
-              <p className="mt-3 text-center">
-                ยังไม่มีบัญชี? <a href="/register" className="text-decoration-underline">สมัครสมาชิก</a>
-              </p>
+              
+             
             </div>
           </div>
           <div className="col-12 col-md-6">
