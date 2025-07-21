@@ -94,9 +94,11 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
                   <div className="card-body">
                     <div className="img-wrap">
                       <img src={item.images?.[item.cover_image_index || 0] || '/assets/img/default.jpg'} alt="auction" />
-                      <div className="badge position-absolute" style={{ backgroundColor: new Date(item.end_time) < new Date() ? '#DC3545' : '#28A745' }}>
-                        {new Date(item.end_time) < new Date() ? 'ปิดประมูลแล้ว' : 'กำลังเปิดประมูล'}
-                      </div>
+                      <div className="badge position-absolute" style={{ backgroundColor: '#28A745' }}>
+  กำลังเปิดประมูล
+</div>
+
+
                       <div className="dropdown">
                         <button
                           onClick={() => handleActive(item.id)}
