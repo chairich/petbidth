@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRouter } from 'next/navigation';  // ใช้ useRouter สำหรับ App Router
@@ -8,8 +7,6 @@ import Cookies from 'js-cookie'; // ใช้ js-cookie
 import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabaseClient';
 const MyTimer = dynamic(() => import('@/components/common/Timer'), { ssr: false });
-
-
 
 const LiveAuctionHomeOne = ({ style_2 }: any) => {
   const [auctions, setAuctions] = useState<any[]>([]);
@@ -49,6 +46,7 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
         .from('auctions')
         .select('*')
         .eq('status', 'active')  // ค้นหาการประมูลที่มีสถานะ active
+        .gte('end_time', new Date().toISOString()) // Filter only active auctions that haven't ended
         .order('created_at', { ascending: false });  // เรียงตามวันที่สร้างล่าสุด
 
       if (error) {
@@ -96,7 +94,9 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
                   <div className="card-body">
                     <div className="img-wrap">
                       <img src={item.images?.[item.cover_image_index || 0] || '/assets/img/default.jpg'} alt="auction" />
-                      <div className="badge bg-success position-absolute">กำลังเปิดประมูล</div>
+                      <div className="badge position-absolute" style={{ backgroundColor: new Date(item.end_time) < new Date() ? '#DC3545' : '#28A745' }}>
+                        {new Date(item.end_time) < new Date() ? 'ปิดประมูลแล้ว' : 'กำลังเปิดประมูล'}
+                      </div>
                       <div className="dropdown">
                         <button
                           onClick={() => handleActive(item.id)}
