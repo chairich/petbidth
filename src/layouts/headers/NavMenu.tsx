@@ -72,6 +72,15 @@ const NavMenu = () => {
               </ul>
             </li>
           )}
+          {userRole === 'vip' && (
+            <li className="ft-dd">
+              <span>🏅 เมนู VIP</span>
+              <ul className="ft-dd-menu">
+                <li><Link href="/vip-shop/edit-shop">✏️ แก้ไขแบนเนอร์ร้านค้า</Link></li> {/* ลิงก์ไปยังหน้าแก้ไขแบนเนอร์ */}
+                <li><Link href="/vip-shop/create-shop">🏗️ สร้างร้านค้าใหม่</Link></li> {/* ลิงก์ไปยังหน้าสร้างร้าน */}
+              </ul>
+            </li>
+          )}
           <li><Link href="/profile">🛠 แก้ไขโปรไฟล์</Link></li>
           <li>
             <button onClick={handleLogout} className="btn btn-link nav-link p-0">

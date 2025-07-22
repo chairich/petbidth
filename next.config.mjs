@@ -4,7 +4,10 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ['lhrszqycskubmmtisyou.supabase.co'], // ← เปลี่ยนให้ตรงกับโดเมนของโปรเจกต์คุณ
+    domains: [
+      'lhrszqycskubmmtisyou.supabase.co', // ของ Supabase เดิม
+      'placehold.co',                     // ← ✅ เพิ่มอันนี้เข้าไป
+    ],
   },
 };
 

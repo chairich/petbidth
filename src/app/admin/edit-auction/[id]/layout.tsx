@@ -7,11 +7,11 @@ import Divider from '@/components/common/Divider'
 export default function EditAuctionLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <HeaderOne />
-      <Divider />
+      
+      
       {children}
-      <Divider />
-      <FooterOne />
+      
+      
     </>
   )
 }

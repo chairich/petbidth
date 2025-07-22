@@ -1,38 +1,59 @@
-'use client';
+'use client'
 
-import "../styles/index.scss";
-import { Providers } from './providers';
+import "../styles/index.scss"
+import { Providers } from './providers'
+import HeaderOne from '@/layouts/headers/HeaderOne'
+import FooterOne from '@/layouts/footers/FooterOne'
+import Breadcrumb from '@/components/common/Breadcrumb'
+import Divider from '@/components/common/Divider'
+import { useEffect, useState } from 'react'
+import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
+  const [supabase] = useState(() => createBrowserSupabaseClient())
+  const [userId, setUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      const { data } = await supabase.auth.getSession()
+      const user = data?.session?.user
+      if (user) {
+        setUserId(user.id)
+        console.log("✅ user id:", user.id)
+      }
+    }
+    fetchSession()
+  }, [supabase])
+
   return (
-    <html lang="en" data-theme="dark">
-      <head> <link rel="icon" href="/favicon.png" sizes="any" />
-            <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-            <meta name="apple-mobile-web-app-capable" content="yes" />
-            <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-            <meta name="apple-mobile-web-app-title" content="PetBidThai" />
-            <meta name="mobile-web-app-capable" content="yes" />
-            <link rel="icon" href="favicon.png" sizes="any" />
-            <link rel="icon" type="image/png" href="/favicon.png" />
-            <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-            <meta name="theme-color" content="#1e1e2d" />
-            <meta name="apple-mobile-web-app-capable" content="yes" />
-            <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-            <meta name="apple-mobile-web-app-title" content="PetBidThai" />
-            <meta name="mobile-web-app-capable" content="yes" />
-   
-            <link
+    <html lang="th" data-theme="dark">
+      <head>
+        <link rel="icon" type="image/png" href="/favicon.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="theme-color" content="#1e1e2d" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="PetBidThai" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap"
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&display=swap"
-        /> 
+        />
       </head>
       <body suppressHydrationWarning={true}>
-        <Providers>{children}</Providers>
+        <Providers>
+          
+          
+          
+          <main className="min-h-screen">
+            {children}
+          </main>
+          
+        </Providers>
       </body>
     </html>
-  );
+  )
 }

@@ -118,12 +118,7 @@ const LoginArea = () => {
             <div className="card login-card shadow-lg">
               <h3 className="mb-4 text-center">Welcome Back!</h3>
 
-              <button
-                onClick={() => signIn("facebook", { callbackUrl: redirectTo })}
-                className="btn btn-outline-primary mb-3 w-100 rounded-pill"
-              >
-                <i className="fab fa-facebook me-2"></i> เข้าสู่ระบบด้วย Facebook
-              </button>
+              
 
               <form onSubmit={handleLogin}>
                 <div className="form-group mb-3">
@@ -178,7 +173,7 @@ const LoginArea = () => {
               </form>
 
               <p className="mt-3 text-center">
-                ยังไม่มีบัญชี? <a href="/register" className="text-decoration-underline">สมัครสมาชิก</a>
+               
               </p>
             </div>
           </div>

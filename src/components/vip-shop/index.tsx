@@ -1,22 +1,24 @@
 
+
 import HeaderOne from '@/layouts/headers/HeaderOne';
 import React from 'react';
 import Breadcrumb from '../common/Breadcrumb';
 import Divider from '../common/Divider';
-import RegisterArea from './RegisterArea';
 import FooterOne from '@/layouts/footers/FooterOne';
+import ShopDetails from './ShopFormArea';
 
-const Register = () => {
+const ShopFormArea = () => {
   return (
     <>
       <HeaderOne />
-      <Breadcrumb title="Register" subtitle="Register" />
+      <Breadcrumb subtitle="ร้านค้า สมาชิกวี.ไอ.พี" title="ร้านค้า" />
       <Divider />
-      <RegisterArea />
+       <ShopDetails />
       <Divider />
       <FooterOne />
+
     </>
   );
 };
 
-export default Register;
+export default ShopFormArea;

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link'; // นำเข้า Link
 import { supabase } from '@/lib/supabaseClient';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from 'swiper/modules';
@@ -53,22 +54,24 @@ export default function ShopBannerCarousel() {
           {banners.map((banner) => (
             <SwiperSlide key={banner.id}>
               <div className="bg-[#0f172a] text-white rounded-xl shadow-lg overflow-hidden">
-                <img
-                  src={banner.images?.[0] || '/no-image.png'}
-                  alt={banner.shop_name}
-                  className="w-full h-64 object-cover"
-                />
-                <div className="p-4 text-left">
-                  <h3 className="text-lg font-bold mb-1 text-white">{banner.shop_name}</h3>
-                  <p className="text-sm text-gray-100"><strong>LINE:</strong> {banner.line_id}</p>
-                  <p className="text-sm text-gray-100 mb-2">
-                    <strong>Facebook:</strong>{" "}
-                    <a href={banner.facebook} className="text-blue-300 underline" target="_blank" rel="noreferrer">
-                      {banner.facebook}
-                    </a>
-                  </p>
-                  <p className="text-sm text-gray-100"><strong>โทร:</strong> {banner.phone}</p>
-                </div>
+                <Link href={`/vip-shop/${banner.id}`}> {/* แทรกลิงค์ที่นี่ */}
+                  <img
+                    src={banner.images?.[0] || '/no-image.png'}
+                    alt={banner.shop_name}
+                    className="w-full h-64 object-cover"
+                  />
+                  <div className="p-4 text-left">
+                    <h3 className="text-lg font-bold mb-1 text-white">{banner.shop_name}</h3>
+                    <p className="text-sm text-gray-100"><strong>LINE:</strong> {banner.line_id}</p>
+                    <p className="text-sm text-gray-100 mb-2">
+                      <strong>Facebook:</strong>{" "}
+                      <a href={banner.facebook} className="text-blue-300 underline" target="_blank" rel="noreferrer">
+                        {banner.facebook}
+                      </a>
+                    </p>
+                    <p className="text-sm text-gray-100"><strong>โทร:</strong> {banner.phone}</p>
+                  </div>
+                </Link>
               </div>
             </SwiperSlide>
           ))}

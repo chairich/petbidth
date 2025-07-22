@@ -1,5 +1,6 @@
-"use client";
-import React, { useEffect, useState } from "react";
+'use client';
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import menu_data from "./MenuData";
 import { supabase } from "@/lib/supabaseClient";
@@ -79,6 +80,12 @@ const MobileMenus = ({ setOpenMenu, openMenu }: any) => {
                 <li><Link href="/admin/banner">🏷 จัดการแบนเนอร์</Link></li>
               </>
             )}
+            {userRole === 'vip' && (
+              <>
+                <li><Link href="/vip-shop/edit-shop">🖌 แก้ไขแบนเนอร์ร้านค้า</Link></li> {/* แก้ไขร้านสำหรับ VIP */}
+                <li><Link href="/vip-shop/create-shop">🏗 สร้างร้านค้าใหม่</Link></li> {/* สร้างร้านค้าใหม่ */}
+              </>
+            )}
             <li><Link href="/profile">🛠 แก้ไขโปรไฟล์</Link></li>
             <li>
               <button
@@ -95,13 +102,13 @@ const MobileMenus = ({ setOpenMenu, openMenu }: any) => {
           </>
         )}
       
-      {!userSession?.id && (
-        <>
-          <li><Link href="/login">🔐 เข้าสู่ระบบ</Link></li>
-          <li><Link href="/">🆕 สมัครสมาชิก</Link></li>
-        </>
-      )}
-</ul>
+        {!userSession?.id && (
+          <>
+            <li><Link href="/login">🔐 เข้าสู่ระบบ</Link></li>
+            <li><Link href="/">🆕 สมัครสมาชิก</Link></li>
+          </>
+        )}
+      </ul>
     </div>
   );
 };
