@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import menu_data from "./MenuData";
@@ -82,8 +83,8 @@ const MobileMenus = ({ setOpenMenu, openMenu }: any) => {
             )}
             {userRole === 'vip' && (
               <>
-                <li><Link href="/vip-shop/edit-shop">🖌 แก้ไขแบนเนอร์ร้านค้า</Link></li> {/* แก้ไขร้านสำหรับ VIP */}
-                <li><Link href="/vip-shop/create-shop">🏗 สร้างร้านค้าใหม่</Link></li> {/* สร้างร้านค้าใหม่ */}
+                <li><Link href="/vip-shop/edit-shop">🖌 แก้ไขแบนเนอร์ร้านค้า</Link></li>
+                <li><Link href="/vip-shop/create-shop">🏗 สร้างร้านค้าใหม่</Link></li>
               </>
             )}
             <li><Link href="/profile">🛠 แก้ไขโปรไฟล์</Link></li>
@@ -101,7 +102,7 @@ const MobileMenus = ({ setOpenMenu, openMenu }: any) => {
             </li>
           </>
         )}
-      
+
         {!userSession?.id && (
           <>
             <li><Link href="/login">🔐 เข้าสู่ระบบ</Link></li>
