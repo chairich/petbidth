@@ -33,6 +33,7 @@ export default function RootLayout({
     <html lang="th" data-theme="dark">
       <head>
         <link rel="icon" type="image/png" href="/favicon.png" />
+        <link rel="manifest" href="/manifest.json" /> {/* ✅ เพิ่มบรรทัดนี้ */}
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#1e1e2d" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
