@@ -7,6 +7,11 @@ import React, { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabaseClient';
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
+
 const MyTimer = dynamic(() => import('@/components/common/Timer'), { ssr: false });
 
 const LiveAuctionHomeOne = ({ style_2 }: any) => {
@@ -42,9 +47,9 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
       const now = new Date().toISOString();
       const { data, error } = await supabase
         .from('auctions')
-        .select('*')
+        .select('*, users:users!auctions_created_by_fkey(avatar_url, name)')
         .eq('status', 'active')
-        .gt('end_time', now)
+        .gte('end_time', now)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -78,7 +83,9 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
             </div>
           </div>
           <div className="col-5 text-end">
-            <Link className="btn rounded-pill btn-outline-primary btn-sm border-2 mb-5" href="/live-bidding">ดูทั้งหมด</Link>
+            <Link className="btn rounded-pill btn-outline-primary btn-sm border-2 mb-5" href="/live-bidding">
+              ดูทั้งหมด
+            </Link>
           </div>
         </div>
       </div>
@@ -86,17 +93,19 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
       <div className="container">
         <div className="row g-4 justify-content-center">
           {auctions.length > 0 ? (
-            auctions.filter(item => new Date(item.end_time) > new Date()).slice(0, 4).map((item, i) => {
-              const now = new Date();
-              const isEnded = new Date(item.end_time) < now;
+            auctions.slice(0, 4).map((item, i) => {
+              const isEnded = dayjs.utc().isAfter(dayjs.utc(item.end_time));
               return (
                 <div key={i} className="col-12 col-sm-6 col-lg-4 col-xl-3">
                   <div className="nft-card card border-0">
                     <div className="card-body">
                       <div className="img-wrap">
-                        <img src={item.images?.[item.cover_image_index || 0] || '/assets/img/default.jpg'} alt="auction" />
+                        <img
+                          src={item.images?.[item.cover_image_index || 0] || '/assets/img/default.jpg'}
+                          alt="auction"
+                        />
                         <div className={`badge position-absolute ${isEnded ? 'bg-secondary' : 'bg-success'}`}>
-                          {isEnded ? 'ปิดประมูลแล้ว' : 'กำลังเปิดประมูล'}
+                          {isEnded ? 'ปิดประมูลแล้ว' : 'กำลังประมูลอยู่'}
                         </div>
                         <div className="dropdown">
                           <button
@@ -133,12 +142,20 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
                         <div className="col-8">
                           <div className="name-info d-flex align-items-center">
                             <div className="author-img position-relative">
-                              <img className="shadow" src={item.users_avatar_url || 'https://lhrszqycskubmmtisyou.supabase.co/storage/v1/object/public/auction-images/auction-images/1752563441344_0.png'} alt="avatar" />
+                              <img
+                                className="shadow"
+                                src={item.users?.avatar_url || '/assets/img/default-avatar.png'}
+                                alt="avatar"
+                              />
                               <i className="bi bi-check position-absolute bg-success"></i>
                             </div>
                             <div className="name-author">
-                              <Link className="name d-block hover-primary fw-bold text-truncate" href={`/auction/${item.id}`}>{item.title}</Link>
-                              <span className="author d-block fz-12 hover-primary text-truncate">@{item.owner_name}</span>
+                              <Link className="name d-block hover-primary fw-bold text-truncate" href={`/auction/${item.id}`}>
+                                {item.title}
+                              </Link>
+                              <span className="author d-block fz-12 hover-primary text-truncate">
+                                @{item.users?.name || 'ไม่ระบุ'}
+                              </span>
                             </div>
                           </div>
                         </div>
