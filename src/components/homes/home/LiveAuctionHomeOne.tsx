@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -92,8 +91,10 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
 
       <div className="container">
         <div className="row g-4 justify-content-center">
-          {auctions.length > 0 ? (
-            auctions.slice(0, 4).map((item, i) => {
+          {[...auctions]
+            .sort((a, b) => dayjs.utc(a.end_time).diff(dayjs.utc()) - dayjs.utc(b.end_time).diff(dayjs.utc()))
+            .slice(0, 4)
+            .map((item, i) => {
               const isEnded = dayjs.utc().isAfter(dayjs.utc(item.end_time));
               return (
                 <div key={i} className="col-12 col-sm-6 col-lg-4 col-xl-3">
@@ -179,10 +180,7 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
                   </div>
                 </div>
               );
-            })
-          ) : (
-            <p>ยังไม่มีการประมูลที่เปิดอยู่</p>
-          )}
+            })}
         </div>
       </div>
     </div>
