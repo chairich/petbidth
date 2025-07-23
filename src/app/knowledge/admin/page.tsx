@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Database } from '@/types/supabase'
 
-export default function KnowledgePage() {
+export default function KnowledgeAdminPage() {
   const supabase = createClientComponentClient<Database>()
 
   const [userRole, setUserRole] = useState<string | null>(null)
@@ -13,7 +13,7 @@ export default function KnowledgePage() {
 
   useEffect(() => {
     const fetchUserAndPosts = async () => {
-      const { data: userData, error: userErr } = await supabase.auth.getUser()
+      const { data: userData } = await supabase.auth.getUser()
       const userId = userData?.user?.id
       if (userId) {
         const { data: user } = await supabase
@@ -43,16 +43,14 @@ export default function KnowledgePage() {
     <div className="p-6 text-white">
       <h1 className="text-3xl font-bold mb-4 text-blue-300">บทความให้ความรู้</h1>
 
-      {userRole === 'admin' && (
-        <div className="mb-4 space-x-2">
-          <Link href="/knowledge/new" className="inline-flex items-center text-sm text-white hover:underline">
-            <span className="mr-1 text-xl">✚</span> เขียนบทความใหม่
-          </Link>
-          <Link href="/knowledge/my-posts" className="inline-flex items-center text-sm text-yellow-400 hover:underline">
-            ✏️ จัดการบทความของฉัน
-          </Link>
-        </div>
-      )}
+      <div className="mb-4 space-x-2">
+        <Link href="/knowledge/new" className="inline-flex items-center text-sm text-white hover:underline">
+          <span className="mr-1 text-xl">✚</span> เขียนบทความใหม่
+        </Link>
+        <Link href="/knowledge/my-posts" className="inline-flex items-center text-sm text-yellow-400 hover:underline">
+          ✏️ จัดการบทความของฉัน
+        </Link>
+      </div>
 
       <div className="mt-6 space-y-3">
         {posts.length === 0 ? (
@@ -62,6 +60,9 @@ export default function KnowledgePage() {
             <div key={post.id}>
               <Link href={`/knowledge/${post.id}`} className="text-lg font-semibold text-blue-400 hover:underline">
                 {post.title}
+              </Link>{' '}
+              <Link href={`/knowledge/edit/${post.id}`} className="text-sm text-yellow-400 hover:underline ml-2">
+                ✏️ แก้ไข
               </Link>
               <div className="text-xs text-gray-400">โพสต์เมื่อ {new Date(post.created_at).toLocaleDateString('th-TH')}</div>
             </div>

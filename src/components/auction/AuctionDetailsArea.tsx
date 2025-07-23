@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -71,66 +72,49 @@ export default function LiveAuctionPage() {
 
   const handleAutoEndLogic = async (auctionData: any, bids: any[]) => {
     if (!auctionData || auctionData.is_closed) return;
-
     if (bids.length === 0) {
       const createdAt = new Date(auctionData.created_at).getTime();
       const now = new Date().getTime();
       if (now - createdAt > 10 * 60 * 1000) {
         await supabase.from('auctions').update({ is_closed: true }).eq('id', auctionData.id);
-        console.log("🛑 ปิดประมูลเพราะไม่มีคนบิดใน 10 นาที");
       }
     } else {
       const latestBidTime = new Date(bids[0].bid_time).getTime();
       const currentEndTime = new Date(auctionData.end_time).getTime();
-      const oneMinuteBeforeEnd = currentEndTime - 60 * 1000;
-
       const newEndTime = latestBidTime + 4 * 60 * 1000;
-if (newEndTime > currentEndTime) {
-  await supabase
-    .from('auctions')
-    .update({ end_time: new Date(newEndTime).toISOString() })
-    .eq('id', auctionData.id);
-  console.log("⏰ ต่อเวลา 4 นาทีหลังการบิด");
-}
-
+      if (newEndTime > currentEndTime) {
+        await supabase.from('auctions').update({ end_time: new Date(newEndTime).toISOString() }).eq('id', auctionData.id);
+      }
     }
   };
 
   const updateTimeLeft = (endTime: string) => {
-  const nowTime = dayjs().tz('Asia/Bangkok');
-  const end = dayjs.utc(endTime).tz('Asia/Bangkok'); // ✅ แก้ตรงนี้
-  const diff = end.diff(nowTime);
-  setIsUrgent(diff <= 30000);
-
-  if (diff <= 0) {
-    setTimeLeft('หมดเวลา');
-  } else {
-    const seconds = Math.floor((diff / 1000) % 60);
-    const minutes = Math.floor((diff / 1000 / 60) % 60);
-    const hours = Math.floor((diff / 1000 / 60 / 60) % 24);
-    const days = Math.floor(diff / 1000 / 60 / 60 / 24);
-    setTimeLeft(`${days} วัน ${hours} ชม. ${minutes} นาที ${seconds} วิ`);
-  }
-};
-
+    const nowTime = dayjs().tz('Asia/Bangkok');
+    const end = dayjs.utc(endTime).tz('Asia/Bangkok');
+    const diff = end.diff(nowTime);
+    setIsUrgent(diff <= 30000);
+    if (diff <= 0) {
+      setTimeLeft('หมดเวลา');
+    } else {
+      const seconds = Math.floor((diff / 1000) % 60);
+      const minutes = Math.floor((diff / 1000 / 60) % 60);
+      const hours = Math.floor((diff / 1000 / 60 / 60) % 24);
+      const days = Math.floor(diff / 1000 / 60 / 60 / 24);
+      setTimeLeft(`${days} วัน ${hours} ชม. ${minutes} นาที ${seconds} วิ`);
+    }
+  };
 
   const handleEndAuction = async () => {
-    const { error } = await supabase
-      .from('auctions')
-      .update({ end_time: new Date().toISOString() })
-      .eq('id', auction.id);
+    const { error } = await supabase.from('auctions').update({ end_time: new Date().toISOString() }).eq('id', auction.id);
     if (!error) {
       alert('ประมูลถูกปิดแล้ว');
       fetchAuction();
-    } else {
-      alert('เกิดข้อผิดพลาดในการปิดประมูล');
     }
   };
 
   const handleBidSubmit = async () => {
     if (isLoadingSession) return alert("กำลังโหลดข้อมูลผู้ใช้...");
     if (!session?.user) return alert("กรุณาเข้าสู่ระบบก่อนทำการประมูล");
-
     const newBid = Number(bidPrice);
     const currentPrice = Number(auction.current_price ?? auction.start_price ?? 0);
     if (!newBid || isNaN(newBid)) return alert("กรุณาใส่ราคาที่ถูกต้อง");
@@ -149,12 +133,8 @@ if (newEndTime > currentEndTime) {
       setShowModal(false);
       setBidPrice('');
       fetchAuction();
-    } else {
-      alert("บันทึกการบิดล้มเหลว");
     }
   };
-
-
 
   if (!auction || isLoadingSession) return <div className="p-4 text-center text-white">กำลังโหลดข้อมูล...</div>;
 
@@ -163,36 +143,9 @@ if (newEndTime > currentEndTime) {
       <div className="row g-4">
         <div className="col-lg-6">
           <div className="border rounded overflow-hidden bg-dark mb-3">
-  {auction.images?.[selectedImageIndex] && (
-    <div className="position-relative">
-      <Image
-        src={auction.images[selectedImageIndex]}
-        alt="auction"
-        width={600}
-        height={600}
-        className="img-fluid w-100"
-        priority
-      />
-      {auction.overlay_text &&
-        selectedImageIndex === (auction.cover_image_index ?? 0) && (
-          <div
-            className="position-absolute top-0 start-0 m-3 px-3 py-2 bg-dark bg-opacity-75 text-white rounded small z-2"
-            style={{
-              whiteSpace: 'pre-wrap',
-              maxWidth: '90%',
-              fontSize: '14px',
-              lineHeight: '1.5',
-            }}
-          >
-            {auction.overlay_text}
-          </div>
-        )}
-    </div>
-
-
-
-)}
-
+            {auction.images?.[selectedImageIndex] && (
+              <Image src={auction.images[selectedImageIndex]} alt="auction" width={600} height={600} className="img-fluid w-100" priority />
+            )}
           </div>
           <div className="d-flex gap-2">
             {auction.images?.slice(0, 5).map((img: string, idx: number) => (
@@ -202,98 +155,60 @@ if (newEndTime > currentEndTime) {
             ))}
           </div>
         </div>
-
         <div className="col-lg-6">
           <h2>{auction.title}</h2>
           <p>{auction.description}</p>
           <div className="my-3 h5 text-warning">ราคาปัจจุบัน: {auction.current_price.toLocaleString()} บาท</div>
-          <div className="mb-3">
-  เวลาที่เหลือ:{" "}
-  <strong style={{ color: isUrgent ? "red" : "inherit" }}>{timeLeft}</strong>
-</div>
+          <div className="mb-3">เวลาที่เหลือ: <strong style={{ color: isUrgent ? "red" : "inherit" }}>{timeLeft}</strong></div>
 
+          {timeLeft === 'หมดเวลา' && bids.length > 0 && (
+            <div className="alert alert-success mt-4 fw-bold fs-5">
+              🎉 การประมูลสิ้นสุดแล้ว <br />
+              ผู้ชนะคือ <img src={bids[0]?.users?.avatar_url || '/icons/icon-512x512.png'} className="rounded-circle me-2" width="24" height="24" alt="avatar" />
+              <strong>{bids[0]?.users?.name ?? 'ไม่ทราบชื่อ'}</strong> ด้วยราคา <strong> {bids[0]?.bid_price.toLocaleString()} บาท</strong> <br />
+              ขอแสดงความยินดีด้วยครับ!
 
-          <div className="my-3">
-            <p>ราคานำโดย:
-              {bids.length > 0 ? (
-                <span>
-                  <img src={bids[0]?.users?.avatar_url || '/icons/icon-512x512.png'} className="rounded-circle me-2" width="24" height="24" alt="User Avatar" />
-                  {bids[0]?.users?.name ?? 'ไม่ทราบชื่อ'} - {bids[0]?.bid_price.toLocaleString()} บาท
-                </span>
-              ) : 'ยังไม่มีการประมูล'}
-            </p>
-          </div>
-
-          <button
-  className="btn btn-primary rounded-pill w-100"
- onClick={() => {
-  const now = dayjs().tz('Asia/Bangkok');
-  const start = dayjs.utc(auction.start_time).tz('Asia/Bangkok'); // ✅ ต้องใส่ .utc() เช่นกัน
-  const end = dayjs.utc(auction.end_time).tz('Asia/Bangkok');     // ✅
-
-  if (now.isBefore(start)) {
-    return alert(`ยังไม่ถึงเวลาเริ่มเคาะประมูล\nเริ่มเคาะประมูล: ${start.format('D MMMM YYYY เวลา HH:mm')} น.`);
-  }
-
-  if (now.isAfter(end)) {
-    return alert("เวลาประมูลหมดแล้ว ไม่สามารถเคาะบิดได้");
-  }
-
-  const current = Number(auction.current_price ?? auction.start_price ?? 0);
-  setBidPrice((current + 100).toString());
-  setShowModal(true);
-}}
-
->
-  เคาะประมูล
-</button>
-
-
-          {session?.user?.id === auction.created_by && (
-            <button onClick={handleEndAuction} className="btn btn-danger rounded-pill w-100 mt-3">
-              🛑 ปิดประมูลทันที (เฉพาะแอดมิน)
-            </button>
+    <hr />
+    <div className="mt-3">
+      <h6>รายการผู้เข้าร่วมประมูล:</h6>
+      <ul className="list-group">
+        {bids.map((bid, index) => (
+          <li key={index} className="list-group-item bg-dark text-light">
+            <img src={bid.users?.avatar_url || '/icons/icon-512x512.png'} width="24" height="24" className="rounded-circle me-2" />
+            <strong>{bid.users?.name ?? bid.user_id.slice(0, 6)}</strong> เคาะ {bid.bid_price.toLocaleString()} บาท
+            <br />
+            <small className="text-muted">
+              {dayjs.utc(bid.created_at).tz('Asia/Bangkok').format('D/M/YY HH:mm')} น.
+            </small>
+          </li>
+        ))}
+      </ul>
+    </div>
+            </div>
           )}
 
-          <div className="mt-5">
-            <h5>ประวัติการประมูล</h5>
-            <ul className="list-group">
-              {bids.length === 0 && <li className="list-group-item">ยังไม่มีการประมูล</li>}
-              {bids.map((bid, i) => {
-  const formattedTime = dayjs.utc(bid.created_at).tz('Asia/Bangkok').format('D/M/YY HH:mm');
-  return (
-    <li key={i} className="list-group-item bg-dark text-light">
-      <img src={bid.users?.avatar_url || 'https://default-avatar-url.com'} className="rounded-circle me-2" width="24" height="24" alt="" />
-      {bid.users?.name ?? bid.user_id?.slice(0, 6) ?? 'ไม่ทราบ'} เคาะ {bid.bid_price} บาท<br />
-      <small className="text-muted">{formattedTime}</small>
-    </li>
-  );
-})}
+          {timeLeft === 'หมดเวลา' && bids.length === 0 && (
+            <div className="alert alert-danger mt-4 fw-bold fs-5">
+              ❌ การประมูลสิ้นสุดแล้ว และไม่มีผู้เสนอราคา
+            </div>
+          )}
 
-            </ul>
-          </div>
+          {timeLeft !== 'หมดเวลา' && (
+            <button className="btn btn-primary rounded-pill w-100" onClick={() => {
+              const now = dayjs().tz('Asia/Bangkok');
+              const start = dayjs.utc(auction.start_time).tz('Asia/Bangkok');
+              const end = dayjs.utc(auction.end_time).tz('Asia/Bangkok');
+              if (now.isBefore(start)) return alert(`ยังไม่ถึงเวลาเริ่มเคาะประมูล\nเริ่มเคาะประมูล: ${start.format('D MMMM YYYY เวลา HH:mm')} น.`);
+              if (now.isAfter(end)) return alert("เวลาประมูลหมดแล้ว ไม่สามารถเคาะบิดได้");
+              const current = Number(auction.current_price ?? auction.start_price ?? 0);
+              setBidPrice((current + 100).toString());
+              setShowModal(true);
+            }}>
+              เคาะประมูล
+            </button>
+          )}
         </div>
       </div>
-
-      {showModal && (
-        <div className="modal show d-block" tabIndex={-1}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content text-dark">
-              <div className="modal-header">
-                <h5 className="modal-title">ใส่ราคาที่คุณต้องการบิด</h5>
-                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
-              </div>
-              <div className="modal-body">
-                <input type="number" value={bidPrice} onChange={(e) => setBidPrice(e.target.value)} className="form-control" placeholder={`เช่น ${Number(bids[0]?.bid_price ?? auction.start_price) + 100}`} />
-              </div>
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>ยกเลิก</button>
-                <button className="btn btn-primary" onClick={handleBidSubmit}>ยืนยัน</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
