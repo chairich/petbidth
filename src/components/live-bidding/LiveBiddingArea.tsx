@@ -1,4 +1,3 @@
-
 'use client'
 
 import React, { useEffect, useState } from 'react'
@@ -54,12 +53,15 @@ const LiveBiddingArea = () => {
 
       auctions.forEach((auction) => {
         const now = dayjs().tz('Asia/Bangkok')
+        const start = dayjs(auction.start_time).tz('Asia/Bangkok')
         const end = dayjs(auction.end_time).tz('Asia/Bangkok')
-        const diff = end.diff(now)
 
-        if (diff > 0) {
-          const dur = dayjs.duration(diff)
-          updatedCountdowns[auction.id] = `เหลือเวลา ${dur.days()} วัน ${dur.hours()} ชม ${dur.minutes()} นาที ${dur.seconds()} ว`
+        if (now.isBefore(start)) {
+          const dur = dayjs.duration(start.diff(now))
+          updatedCountdowns[auction.id] = `เริ่มใน ${dur.hours()} ชม ${dur.minutes()} นาที`
+        } else if (now.isBefore(end)) {
+          const dur = dayjs.duration(end.diff(now))
+          updatedCountdowns[auction.id] = `เหลือเวลา ${dur.hours()} ชม ${dur.minutes()} นาที`
         } else {
           updatedCountdowns[auction.id] = `หมดเวลาแล้ว`
         }
@@ -84,7 +86,9 @@ const LiveBiddingArea = () => {
       <div className="container">
         <div className="row g-4 justify-content-center">
           {auctions.map((item, i) => {
-            const isEnded = dayjs.utc().isAfter(dayjs.utc(item.end_time));
+            const now = dayjs.utc()
+            const hasStarted = now.isAfter(dayjs.utc(item.start_time))
+            const isEnded = now.isAfter(dayjs.utc(item.end_time))
             return (
               <div key={i} className="col-12 col-sm-6 col-lg-4 col-xl-3">
                 <div className="nft-card card shadow-sm">
@@ -96,9 +100,9 @@ const LiveBiddingArea = () => {
                         className="w-100 rounded"
                         style={{ height: 240, objectFit: 'cover' }}
                       />
-                      <div className={`badge position-absolute ${isEnded ? 'bg-secondary' : 'bg-success'}`}>
-                          {isEnded ? 'ปิดประมูลแล้ว' : 'กำลังประมูลอยู่'}
-                        </div>
+                      <div className={`badge position-absolute ${isEnded ? 'bg-secondary' : hasStarted ? 'bg-success' : 'bg-warning'}`}>
+                        {isEnded ? 'ปิดประมูลแล้ว' : hasStarted ? 'กำลังเปิดประมูล' : 'รอเริ่มประมูล'}
+                      </div>
                       <div className="position-absolute top-0 end-0 m-2">
                         <button onClick={() => toggleLike(item.id)} className="btn btn-sm text-white">
                           <img src={item.image} alt="" /><LikeButton auctionId={item.id} />
@@ -137,7 +141,7 @@ const LiveBiddingArea = () => {
                         {userRole === 'admin' && (
                           <Link
                             className="btn btn-warning rounded-pill w-100 btn-sm"
-                            href={`/admin/edit-auction/${item.id}`}
+                            href={`/admin/auctions/edit-auction/${item.id}`}
                           >
                             ✏️ แก้ไขกระทู้
                           </Link>

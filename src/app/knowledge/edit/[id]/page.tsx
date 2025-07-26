@@ -13,6 +13,7 @@ const EditKnowledgePage = () => {
   const [images, setImages] = useState<File[]>([])
   const [existingImages, setExistingImages] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
+  const [canEdit, setCanEdit] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -22,6 +23,21 @@ const EditKnowledgePage = () => {
         .select('*')
         .eq('post_id', id)
         .order('id')
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      const userId = session?.user.id
+      const { data: user } = await supabase.from('users').select('role').eq('id', userId).single()
+
+      if (post.author_id !== userId && user?.role !== 'admin') {
+        alert('คุณไม่มีสิทธิ์แก้ไขบทความนี้')
+        router.push('/knowledge')
+        return
+      } else {
+        setCanEdit(true)
+      }
 
       if (post) {
         setTitle(post.title)
@@ -95,7 +111,7 @@ const EditKnowledgePage = () => {
 
     const { error: updateError } = await supabase
       .from('knowledge_posts')
-      .update({ title, images: finalImages, updated_at: new Date().toISOString() })
+      .update({ title, images: finalImages })
       .eq('id', id)
 
     if (updateError) {
@@ -178,7 +194,7 @@ const EditKnowledgePage = () => {
           )}
         </div>
 
-        <button type="submit" className="btn btn-primary" disabled={uploading}>
+        <button type="submit" className="btn btn-primary" disabled={!canEdit || uploading}>
           {uploading ? 'กำลังอัปเดต...' : 'บันทึกการแก้ไข'}
         </button>
       </form>
