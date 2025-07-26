@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import DeleteBidButton from '@/components/admin/DeleteBidButton';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { createClient } from '@supabase/supabase-js';
@@ -11,10 +12,13 @@ import { supabase } from '@/lib/supabaseClient';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+import 'dayjs/locale/th';
+dayjs.locale('th');
 
 export default function LiveAuctionPage() {
   const { id } = useParams();
   const [auction, setAuction] = useState<any>(null);
+const [announcement, setAnnouncement] = useState('');
   const [bids, setBids] = useState<any[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState<string>('กำลังคำนวณ...');
@@ -23,6 +27,7 @@ export default function LiveAuctionPage() {
   const [showModal, setShowModal] = useState(false);
   const [bidPrice, setBidPrice] = useState('');
   const [isUrgent, setIsUrgent] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -47,6 +52,13 @@ export default function LiveAuctionPage() {
   }, [id]);
 
   useEffect(() => {
+  if (!auction?.start_time) return;
+  const now = dayjs().tz('Asia/Bangkok');
+  const start = dayjs.utc(auction.start_time).tz('Asia/Bangkok');
+  setHasStarted(now.isAfter(start));
+}, [auction]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       if (auction?.end_time) updateTimeLeft(auction.end_time);
     }, 1000);
@@ -56,7 +68,11 @@ export default function LiveAuctionPage() {
   const fetchAuction = async () => {
     const { data } = await supabase
       .from('auctions')
-      .select('*, bids(bid_price, bid_time, created_at, user_id, users:users!bids_user_id_fkey(*)), creator:users!auctions_created_by_fkey(*)')
+     .select(`*, 
+  bids(id, bid_price, bid_time, created_at, user_id, users:users!bids_user_id_fkey(*)), 
+  creator:users!auctions_created_by_fkey(*)
+`)
+
       .eq('id', id)
       .order('created_at', { referencedTable: 'bids', ascending: false })
       .single();
@@ -64,6 +80,7 @@ export default function LiveAuctionPage() {
       const highestBid = (data.bids || [])[0]?.bid_price;
       data.current_price = highestBid ?? data.start_price;
       setAuction(data);
+      
       setBids(data.bids || []);
       handleAutoEndLogic(data, data.bids || []);
     }
@@ -73,22 +90,22 @@ export default function LiveAuctionPage() {
     if (!auctionData || auctionData.is_closed) return;
 
     if (bids.length === 0) {
-      const createdAt = new Date(auctionData.created_at).getTime();
-      const now = new Date().getTime();
+      const createdAt = dayjs.utc(auctionData.created_at).tz('Asia/Bangkok').valueOf();
+      const now = dayjs().tz('Asia/Bangkok').valueOf();
       if (now - createdAt > 10 * 60 * 1000) {
         await supabase.from('auctions').update({ is_closed: true }).eq('id', auctionData.id);
         console.log("🛑 ปิดประมูลเพราะไม่มีคนบิดใน 10 นาที");
       }
     } else {
-      const latestBidTime = new Date(bids[0].bid_time).getTime();
-      const currentEndTime = new Date(auctionData.end_time).getTime();
+      const latestBidTime = dayjs.utc(bids[0].bid_time).tz('Asia/Bangkok').valueOf();
+      const currentEndTime = dayjs.utc(auctionData.end_time).tz('Asia/Bangkok').valueOf();
       const oneMinuteBeforeEnd = currentEndTime - 60 * 1000;
 
       const newEndTime = latestBidTime + 4 * 60 * 1000;
 if (newEndTime > currentEndTime) {
   await supabase
     .from('auctions')
-    .update({ end_time: new Date(newEndTime).toISOString() })
+    .update({ end_time: dayjs(newEndTime).tz('Asia/Bangkok').toISOString() })
     .eq('id', auctionData.id);
   console.log("⏰ ต่อเวลา 4 นาทีหลังการบิด");
 }
@@ -117,7 +134,7 @@ if (newEndTime > currentEndTime) {
   const handleEndAuction = async () => {
     const { error } = await supabase
       .from('auctions')
-      .update({ end_time: new Date().toISOString() })
+      .update({ end_time: dayjs().tz('Asia/Bangkok').toISOString() })
       .eq('id', auction.id);
     if (!error) {
       alert('ประมูลถูกปิดแล้ว');
@@ -206,10 +223,32 @@ if (newEndTime > currentEndTime) {
         <div className="col-lg-6">
           <h2>{auction.title}</h2>
           <p>{auction.description}</p>
+          {auction.video_url && (
+            <div className="mb-4">
+              {auction.video_url.endsWith('.mp4') ? (
+                <video controls width="100%" src={auction.video_url}></video>
+              ) : (
+                <div className="ratio ratio-16x9">
+                  <iframe
+                    src={auction.video_url.includes('youtube.com/watch') ? auction.video_url.replace('watch?v=', 'embed/') : auction.video_url}
+                    title="วิดีโอ"
+                    allowFullScreen
+                  ></iframe>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="my-3 h5 text-warning">ราคาปัจจุบัน: {auction.current_price.toLocaleString()} บาท</div>
           <div className="mb-3">
   เวลาที่เหลือ:{" "}
-  <strong style={{ color: isUrgent ? "red" : "inherit" }}>{timeLeft}</strong>
+  {hasStarted ? (
+    <strong style={{ color: isUrgent ? "red" : "inherit" }}>{timeLeft}</strong>
+  ) : (
+    <strong className="text-warning">
+      เวลาประมูลจะเริ่ม {dayjs.utc(auction.start_time).tz('Asia/Bangkok').format('D MMMM YYYY เวลา HH:mm')} น.
+    </strong>
+  )}
 </div>
 
 
@@ -224,7 +263,24 @@ if (newEndTime > currentEndTime) {
             </p>
           </div>
 
-          <button
+          
+{timeLeft === 'หมดเวลา' && bids.length > 0 && (
+  <div className="alert alert-success mt-4 fw-bold fs-5">
+    🎉 การประมูลสิ้นสุดแล้ว <br />
+    ผู้ชนะคือ <img src={bids[0]?.users?.avatar_url || '/icons/icon-512x512.png'} className="rounded-circle me-2" width="24" height="24" alt="avatar" />
+    <strong>{bids[0]?.users?.name ?? 'ไม่ทราบชื่อ'}</strong> ด้วยราคา 
+    <strong>{bids[0]?.bid_price.toLocaleString()} บาท</strong> <br />
+    ขอแสดงความยินดีด้วยครับ!
+  </div>
+)}
+
+{timeLeft === 'หมดเวลา' && bids.length === 0 && (
+  <div className="alert alert-danger mt-4 fw-bold fs-5">
+    ❌ การประมูลสิ้นสุดแล้ว และไม่มีผู้เสนอราคา
+  </div>
+)}
+
+<button
   className="btn btn-primary rounded-pill w-100"
  onClick={() => {
   const now = dayjs().tz('Asia/Bangkok');
@@ -253,22 +309,81 @@ if (newEndTime > currentEndTime) {
             <button onClick={handleEndAuction} className="btn btn-danger rounded-pill w-100 mt-3">
               🛑 ปิดประมูลทันที (เฉพาะแอดมิน)
             </button>
-          )}
+            
+          )}{session?.user?.id === auction.created_by && (
+  <div className="mb-3">
+    <label htmlFor="announcement" className="form-label">📢 แก้ไขประกาศ:</label>
+    <textarea
+      id="announcement"
+      className="form-control"
+      rows={3}
+      value={announcement}
+      onChange={(e) => setAnnouncement(e.target.value)}
+    ></textarea>
+    <button
+      className="btn btn-warning mt-2"
+      onClick={async () => {
+        const { error } = await supabase
+          .from('auctions')
+          .update({ announcement })
+          .eq('id', auction.id);
+        if (!error) {
+          alert('บันทึกประกาศแล้ว');
+          setAuction({ ...auction, announcement });
+        }
+      }}
+    >
+      💾 บันทึกประกาศ
+    </button>
+  </div>
+)}
+
+{auction.announcement && (
+  <div className="fw-bold text-warning border border-warning p-3 rounded">
+    📢 ประกาศ: {auction.announcement}
+  </div>
+)}
 
           <div className="mt-5">
             <h5>ประวัติการประมูล</h5>
             <ul className="list-group">
-              {bids.length === 0 && <li className="list-group-item">ยังไม่มีการประมูล</li>}
-              {bids.map((bid, i) => {
-  const formattedTime = dayjs.utc(bid.created_at).tz('Asia/Bangkok').format('D/M/YY HH:mm');
-  return (
-    <li key={i} className="list-group-item bg-dark text-light">
-      <img src={bid.users?.avatar_url || 'https://default-avatar-url.com'} className="rounded-circle me-2" width="24" height="24" alt="" />
-      {bid.users?.name ?? bid.user_id?.slice(0, 6) ?? 'ไม่ทราบ'} เคาะ {bid.bid_price} บาท<br />
-      <small className="text-muted">{formattedTime}</small>
-    </li>
-  );
-})}
+             {bids.length === 0 ? (
+  <li className="list-group-item bg-dark text-light">ยังไม่มีการประมูล</li>
+) : (
+  bids.map((bid) => {
+    const isOwner = session?.user?.id === auction.created_by;
+    const formattedTime = dayjs
+      .utc(bid.created_at)
+      .tz('Asia/Bangkok')
+      .format('D/M/YY HH:mm');
+
+    return (
+      <li key={bid.id} className="list-group-item bg-dark text-light">
+        <div className="d-flex align-items-center">
+          <img
+            src={bid.users?.avatar_url || 'https://default-avatar-url.com'}
+            className="rounded-circle me-2"
+            width="24"
+            height="24"
+            alt="avatar"
+          />
+          <div>
+            {bid.users?.name ?? bid.user_id?.slice(0, 6) ?? 'ไม่ทราบ'} เคาะ {bid.bid_price} บาท
+            <br />
+            <small className="text-muted">{formattedTime}</small>
+          </div>
+        </div>
+
+        {isOwner && (
+          <div className="bg-dark text-light" >
+            <DeleteBidButton bidId={bid.id} onDeleted={fetchAuction} />
+          </div>
+        )}
+      </li>
+    );
+  })
+)}
+
 
             </ul>
           </div>
