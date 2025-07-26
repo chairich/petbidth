@@ -1,5 +1,6 @@
 
-'use client'
+'use client';
+
 import React, { useState, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
@@ -12,16 +13,14 @@ dayjs.extend(timezone);
 
 const CreateAuction = () => {
   const router = useRouter();
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     start_price: '',
     start_time: '',
-    overlay_text: `1.ไม่พร้อมห้ามเคาะราคาฝ่าฝืนแบนทันที
-2.นกอายุน้อยรับเองหรือขนส่งระยะสั้นๆ
-3.ชำระผ่านแอดมินหรือเจ้าของนกได้
-4.ใส่ราคาผิดแจ้งแอดมินทันที
-5.ผู้ชนะชำระเงินภายใน 2 วัน`,
+    overlay_text: ``,
+    video_url: '',
   });
 
   const [images, setImages] = useState<File[]>([]);
@@ -87,22 +86,23 @@ const CreateAuction = () => {
       return;
     }
 
-    const startTime = dayjs.tz(formData.start_time, 'Asia/Bangkok').utc(); // ✅ แปลงเป็น UTC
-const endTime = startTime.add(10, 'minute'); // ✅ ยังใช้ add เหมือนเดิม
-
+    // ✅ แปลงเวลา input ที่เป็นเวลาประเทศไทย ให้เป็น UTC ก่อนส่งเข้า DB
+    const startTime = dayjs.tz(formData.start_time, 'Asia/Bangkok');
+    const endTime = startTime.add(10, 'minute');
 
     const newAuction = {
       title: formData.title,
       description: formData.description,
       start_price: parseFloat(formData.start_price),
-      start_time: startTime.format(),
-      end_time: endTime.format(),
+      start_time: startTime.utc().toISOString(),
+      end_time: endTime.utc().toISOString(),
       cover_image_index: coverImageIndex,
       images: imageUrls,
       overlay_text: formData.overlay_text,
+      video_url: formData.video_url,
       created_by: userData.user.id,
       is_closed: false,
-      created_at: dayjs().tz('Asia/Bangkok').format(),
+      created_at: dayjs().tz('Asia/Bangkok').utc().toISOString(),
     };
 
     const { data, error } = await supabase.from('auctions').insert(newAuction).select().single();
@@ -134,9 +134,29 @@ const endTime = startTime.add(10, 'minute'); // ✅ ยังใช้ add เ�
           <input type="number" name="start_price" className="form-control" value={formData.start_price} onChange={handleChange} required min="0" step="0.01" />
         </div>
         <div className="mb-3">
-          <label>วันเวลาเริ่มต้น</label>
-          <input type="datetime-local" name="start_time" className="form-control" value={formData.start_time} onChange={handleChange} required />
+          <label>วันเวลาเริ่มต้น (เวลาไทย 24h)</label>
+          <input
+            type="datetime-local"
+            name="start_time"
+            className="form-control"
+            value={formData.start_time}
+            onChange={handleChange}
+            required
+          />
         </div>
+        
+        <div className="mb-3">
+          <label>ลิงก์วิดีโอ (YouTube, TikTok หรือ MP4)</label>
+          <input
+            type="text"
+            name="video_url"
+            className="form-control"
+            value={formData.video_url}
+            onChange={handleChange}
+            placeholder="https://www.youtube.com/watch?v=..."
+          />
+        </div>
+
         <div className="mb-3">
           <label>ข้อความที่จะแสดงบนภาพแรก</label>
           <textarea name="overlay_text" className="form-control" rows={3} value={formData.overlay_text} onChange={handleChange} />
