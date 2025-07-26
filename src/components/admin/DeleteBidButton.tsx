@@ -14,12 +14,15 @@ export default function DeleteBidButton({ bidId, onDeleted }: { bidId: string, o
       alert("เกิดข้อผิดพลาด: " + error.message);
     } else {
       alert("ลบเรียบร้อยแล้ว");
-      onDeleted?.(); // ✅ แก้แล้ว
+      onDeleted?.();
     }
   };
 
   return (
-    <Button variant="destructive" onClick={handleDelete}>
+    <Button
+      className="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded"
+      onClick={handleDelete}
+    >
       ลบราคานี้
     </Button>
   );
