@@ -5,14 +5,8 @@ import Link from "next/link";
 import menu_data from "./MenuData";
 import Cookies from "js-cookie";
 import { supabase } from '@/lib/supabaseClient';
-import { createClient } from '@/utils/supabase/client';
-import { useSession } from '@supabase/auth-helpers-react';
 
 const NavMenu = () => {
-  const supabaseClient = createClient();
-  const session = useSession();
-  const user = session?.user;
-
   const [userSession, setUserSession] = useState<any>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [hasAdminNotification, setHasAdminNotification] = useState(false);
@@ -93,7 +87,7 @@ const NavMenu = () => {
               <ul className="ft-dd-menu">
                 <li><Link href="/admin/auctions">📢 จัดการประมูล</Link></li>
                 <li><Link href="/admin/banner">🏷 จัดการแบนเนอร์</Link></li>
-                <li><Link href="/knowledge/admin">📝 โพสต์กระทู้</Link></li>
+                <li><Link href="/knowledge/admin">🧠 โพสต์บทความ</Link></li>
                 <li><Link href="/admin/users">📝 จัดการผู้ใช้</Link></li>
               </ul>
             </li>
