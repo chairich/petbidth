@@ -5,10 +5,17 @@ import Link from "next/link";
 import menu_data from "./MenuData";
 import Cookies from "js-cookie";
 import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/utils/supabase/client';
+import { useSession } from '@supabase/auth-helpers-react';
 
 const NavMenu = () => {
+  const supabaseClient = createClient();
+  const session = useSession();
+  const user = session?.user;
+
   const [userSession, setUserSession] = useState<any>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [hasAdminNotification, setHasAdminNotification] = useState(false);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -27,6 +34,21 @@ const NavMenu = () => {
     };
     fetchSession();
   }, []);
+
+  useEffect(() => {
+    const checkNotifications = async () => {
+      if (userRole === 'admin' || userRole === 'vip') {
+        const { data } = await supabase
+          .from('shop_reviews')
+          .select('id', { count: 'exact', head: true })
+          .eq('is_read', false);
+        if ((data?.length || 0) > 0) {
+          setHasAdminNotification(true);
+        }
+      }
+    };
+    checkNotifications();
+  }, [userRole]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -64,20 +86,27 @@ const NavMenu = () => {
         <>
           {userRole === 'admin' && (
             <li className="ft-dd">
-              <span>⚙ เมนูแอดมิน</span>
+              <span>
+                ⚙ เมนูแอดมิน{" "}
+                {hasAdminNotification && <span style={{ color: "red" }}>●</span>}
+              </span>
               <ul className="ft-dd-menu">
-                <li><Link href="/admin/post-auction">📢 โพสต์ประมูล</Link></li>
+                <li><Link href="/admin/auctions">📢 จัดการประมูล</Link></li>
                 <li><Link href="/admin/banner">🏷 จัดการแบนเนอร์</Link></li>
                 <li><Link href="/knowledge/admin">📝 โพสต์กระทู้</Link></li>
+                <li><Link href="/admin/users">📝 จัดการผู้ใช้</Link></li>
               </ul>
             </li>
           )}
           {userRole === 'vip' && (
             <li className="ft-dd">
-              <span>🏅 เมนู VIP</span>
+              <span>
+                🏅 เมนู VIP{" "}
+                {hasAdminNotification && <span style={{ color: "orange" }}>●</span>}
+              </span>
               <ul className="ft-dd-menu">
-                <li><Link href="/vip-shop/edit-shop">✏️ แก้ไขแบนเนอร์ร้านค้า</Link></li> {/* ลิงก์ไปยังหน้าแก้ไขแบนเนอร์ */}
-                <li><Link href="/vip-shop/create-shop">🏗️ สร้างร้านค้าใหม่</Link></li> {/* ลิงก์ไปยังหน้าสร้างร้าน */}
+                <li><Link href="/vip-shop/edit-shop">✏️ แก้ไขแบนเนอร์ร้านค้า</Link></li>
+                <li><Link href="/vip-shop/create-shop">🏗️ สร้างร้านค้าใหม่</Link></li>
               </ul>
             </li>
           )}

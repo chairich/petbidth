@@ -92,9 +92,10 @@ const MobileMenus = ({ setOpenMenu, openMenu }: any) => {
 
             {userRole === 'admin' && (
               <>
-                <li><Link href="/admin/post-auction">📢 โพสต์ประมูล</Link></li>
+               <li><Link href="/admin/auctions">📢 จัดการประมูล</Link></li>
                 <li><Link href="/admin/banner">🏷 จัดการแบนเนอร์</Link></li>
                 <li><Link href="/knowledge/admin">🧠 โพสต์บทความ</Link></li>
+                <li><Link href="/admin/users">📝 จัดการผู้ใช้</Link></li>
               </>
             )}
 
