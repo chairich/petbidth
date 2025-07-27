@@ -18,6 +18,8 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
   const [active, setActive] = useState(null);
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [videoUrl, setVideoUrl] = useState('');
 
   useEffect(() => {
     const fetchUser = () => {
@@ -78,7 +80,7 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
               <div className="spinner-grow text-danger" role="status">
                 <span className="visually-hidden">Loading...</span>
               </div>
-              <h2 className="mb-0 ms-2">กำลัง {style_2 ? 'ประมูล' : 'ประมูลสด'}</h2>
+              <h2 className="mb-0 ms-2">ห้อง {style_2 ? 'ประมูล' : 'ประมูลสด'}</h2>
             </div>
           </div>
           <div className="col-5 text-end">
@@ -100,14 +102,87 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
                 <div key={i} className="col-12 col-sm-6 col-lg-4 col-xl-3">
                   <div className="nft-card card border-0">
                     <div className="card-body">
-                      <div className="img-wrap">
+                      <div className="img-wrap position-relative">
+              {(() => {
+                const now = dayjs.utc();
+                const start = dayjs.utc(item.start_time);
+                const end = dayjs.utc(item.end_time);
+                const isBeforeStart = now.isBefore(start);
+                const isEnded = now.isAfter(end);
+                const isLive = !isBeforeStart && !isEnded;
+
+                if (isBeforeStart) {
+                  return (
+                    <div style={{
+                      position: 'absolute',
+                      top: 10,
+                      left: 10,
+                      backgroundColor: '#FFD700',
+                      color: '#000',
+                      fontWeight: 'bold',
+                      padding: '3px 8px',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      zIndex: 10,
+                    }}>
+                      รอเริ่มประมูล
+                    </div>
+                  );
+                } else if (isLive) {
+                  return (
+                    <div style={{
+                      position: 'absolute',
+                      top: 10,
+                      left: 10,
+                      backgroundColor: '#28a745',
+                      color: '#fff',
+                      fontWeight: 'bold',
+                      padding: '3px 8px',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      zIndex: 10,
+                    }}>
+                      กำลังประมูล
+                    </div>
+                  );
+                } else if (isEnded) {
+                  return (
+                    <div style={{
+                      position: 'absolute',
+                      top: 10,
+                      left: 10,
+                      backgroundColor: '#6c757d',
+                      color: '#fff',
+                      fontWeight: 'bold',
+                      padding: '3px 8px',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      zIndex: 10,
+                    }}>
+                      ปิดประมูลแล้ว
+                    </div>
+                  );
+                }
+              })()}
+
+                        
+{item.video_url && (
+  <button
+    className="btn btn-outline-light btn-sm mt-2 w-100"
+    onClick={() => {
+      setVideoUrl(item.video_url);
+      setShowVideoModal(true);
+    }}
+  >
+    🎥 ดูวิดีโอ
+  </button>
+)}
+
                         <img
                           src={item.images?.[item.cover_image_index || 0] || '/assets/img/default.jpg'}
                           alt="auction"
                         />
-                        <div className={`badge position-absolute ${isEnded ? 'bg-secondary' : 'bg-success'}`}>
-                          {isEnded ? 'ปิดประมูลแล้ว' : 'กำลังประมูลอยู่'}
-                        </div>
+                        
                         <div className="dropdown">
                           <button
                             onClick={() => handleActive(item.id)}
@@ -125,7 +200,7 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
                             <li><a className="dropdown-item" href="#"><i className="me-1 bi bi-bookmark"></i>บันทึก</a></li>
                           </ul>
                         </div>
-                        <MyTimer endTime={item.end_time} />
+                        
                       </div>
 
                       <div className="row gx-2 align-items-center mt-3" style={{ color: '#8084AE' }}>
@@ -183,7 +258,34 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
             })}
         </div>
       </div>
+    
+{showVideoModal && (
+  <div className="modal show d-block" tabIndex={-1}>
+    <div className="modal-dialog modal-dialog-centered modal-lg">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h5 className="modal-title">ชมวิดีโอ</h5>
+          <button type="button" className="btn-close" onClick={() => setShowVideoModal(false)}></button>
+        </div>
+        <div className="modal-body">
+          {videoUrl.endsWith(".mp4") ? (
+            <video controls width="100%" src={videoUrl}></video>
+          ) : (
+            <div className="ratio ratio-16x9">
+              <iframe
+                src={videoUrl.includes("youtube.com/watch") ? videoUrl.replace("watch?v=", "embed/") : videoUrl}
+                title="วิดีโอ"
+                allowFullScreen
+              ></iframe>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
+  </div>
+)}
+
+</div>
   );
 };
 

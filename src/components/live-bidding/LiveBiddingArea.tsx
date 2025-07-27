@@ -108,9 +108,7 @@ const LiveBiddingArea = () => {
                           <img src={item.image} alt="" /><LikeButton auctionId={item.id} />
                         </button>
                       </div>
-                      <div className="position-absolute bottom-0 start-0 m-2 bg-dark text-white px-2 py-1 rounded-pill small">
-                        {countdowns[item.id] || ''}
-                      </div>
+                      
                       <div className="dropdown position-absolute top-0 start-50 translate-middle-x mt-2">
                         <button
                           onClick={() => handleActive(item.id)}
