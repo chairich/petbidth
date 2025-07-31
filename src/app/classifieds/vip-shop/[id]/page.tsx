@@ -1,18 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import supabase from "@/lib/supabaseClient2";
-import dynamic from "next/dynamic";
+import { useParams, useRouter } from "next/navigation";
+import supabase from "@/lib/supabaseClient2"; // ✅ client เดียวทั่วโปรเจกต์
+import HeaderOne from "@/layouts/headers/HeaderOne";
+import FooterOne from "@/layouts/footers/FooterOne";
+import Divider from "@/components/common/Divider";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 
-const HeaderOne = dynamic(() => import("@/layouts/headers/HeaderOne"), { ssr: false });
-const FooterOne = dynamic(() => import("@/layouts/footers/FooterOne"), { ssr: false });
-const Divider = dynamic(() => import("@/components/common/Divider"), { ssr: false });
-
-export default function VipShopOwnerPage({ params }: { params: { id: string } }) {
+export default function VipShopOwnerPage() {
+  const params = useParams();
   const router = useRouter();
-  const bannerId = params.id;
+  const bannerId = params?.id as string;
   const [shop, setShop] = useState<any>(null);
   const [classifieds, setClassifieds] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
@@ -27,20 +26,16 @@ export default function VipShopOwnerPage({ params }: { params: { id: string } })
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       setCurrentUser(session?.user || null);
 
-      const { data: shopData, error: shopError } = await supabase
+      const { data: shopData } = await supabase
         .from("banners")
         .select("*, user:users!user_id(*)")
         .eq("id", bannerId)
         .single();
 
-      if (shopError || !shopData) {
-        toast.error("ไม่พบข้อมูลร้านค้า");
-        return;
-      }
-
+      if (!shopData) return;
       setShop(shopData);
 
       const { data: postsData } = await supabase
@@ -92,10 +87,8 @@ export default function VipShopOwnerPage({ params }: { params: { id: string } })
 
   if (!isClient) return null;
 
-  if (!shop) return <div className="text-center py-5 text-muted">ไม่พบร้านค้านี้</div>;
-
-  const user = shop.user;
-  const cover = shop.images?.[shop.cover_image_index || 0] || "/no-image.jpg";
+  const user = shop?.user;
+  const cover = shop?.images?.[shop?.cover_image_index || 0] || "/no-image.jpg";
 
   return (
     <>
@@ -106,18 +99,18 @@ export default function VipShopOwnerPage({ params }: { params: { id: string } })
           <img src={user?.avatar_url || "/default-avatar.png"} width={96} height={96} className="rounded-circle mb-3" alt="avatar" />
           <h2 className="h4 fw-bold">{shop?.shop_name || "ชื่อร้าน"}</h2>
           <p className="text-muted">{shop?.description || "ไม่มีคำแนะนำร้านค้า"}</p>
-          {currentUser?.id === shop?.user?.id && shop?.id && (
+          {currentUser?.id === shop?.user?.id && (
             <Link href={`/classifieds/new?shop_banner_id=${bannerId}`} className="btn btn-success">➕ เพิ่มสินค้า</Link>
           )}
         </div>
 
-        {shop.images?.length > 0 && (
+        {shop?.images?.length > 0 && (
           <div className="mb-4 text-center">
             <img src={cover} className="rounded w-100" alt="cover" />
           </div>
         )}
 
-        {shop.images?.length > 1 && (
+        {shop?.images?.length > 1 && (
           <div className="row g-2 mb-4">
             {shop.images.map((img: string, idx: number) => (
               <div key={idx} className="col-4 col-md-2">
@@ -141,7 +134,7 @@ export default function VipShopOwnerPage({ params }: { params: { id: string } })
                   <h6 className="fw-bold">{item.title || "ไม่มีชื่อ"}</h6>
                   <p className="text-success fw-bold">{item.price ?? "-"} บาท</p>
                   <Link href={`/classifieds/${item.id}`} className="btn btn-sm btn-primary mt-auto">ดูรายละเอียด</Link>
-                  {currentUser?.id === shop?.user?.id && shop?.id && (
+                  {currentUser?.id === shop?.user?.id && (
                     <div className="mt-2 d-flex gap-2">
                       <Link href={`/classifieds/edit/${item.id}`} className="btn btn-sm btn-warning">✏️ แก้ไข</Link>
                       <button onClick={() => handleDelete(item.id)} className="btn btn-sm btn-danger">🗑️ ลบ</button>
@@ -163,7 +156,7 @@ export default function VipShopOwnerPage({ params }: { params: { id: string } })
               <li key={r.id} className="bg-dark p-3 rounded mb-3">
                 <div className="d-flex align-items-center mb-2">
                   <img src={r.user?.avatar_url || "/noavatar.png"} width={40} height={40} className="rounded-circle me-2" />
-                  <strong>{(r?.user && r.user.name) ? r.user.name : "ผู้ใช้ทั่วไป"}</strong>
+                  <strong>{r.user?.username}</strong>
                   <span className="ms-2 text-warning">★ {r.rating}/5</span>
                 </div>
                 <p>{r.comment}</p>

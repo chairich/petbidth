@@ -259,26 +259,32 @@ const NavMenu = () => {
         )}
 
         {userSession?.id && (userRole === "admin" || userRole === "vip") && (
-          <li>
-            <span>💬 แชท</span>
-            <select
-              value={receiverId || ''}
-              onChange={(e) => {
-                const selected = userList.find((u) => u.id === e.target.value);
-                setReceiverId(selected?.id || null);
-                setReceiverName(selected?.name || '');
-                setShowChat(true);
-                setOpenChatPopup(true);
-              }}
-            >
-              <option value="">เลือกผู้รับ</option>
-              {userList.map((user) => (
-                <option key={user.id} value={user.id}>{user.name}</option>
-              ))}
-            </select>
-          </li>
-        )}
-
+  <li>
+    <span>💬 แชท</span>
+    <input
+      type="text"
+      value={receiverName}
+      onChange={(e) => {
+        const name = e.target.value;
+        setReceiverName(name);
+        const selected = userList.find((u) => u.name === name);
+        if (selected) {
+          setReceiverId(selected.id);
+          setShowChat(true);
+          setOpenChatPopup(true);
+        }
+      }}
+      list="user-list"
+      placeholder="พิมพ์ชื่อผู้รับ..."
+      className="form-control text-black"
+    />
+       <datalist id="user-list">
+      {userList.map((user) => (
+        <option key={user.id} value={user.name} />
+         ))}
+        </datalist>
+         </li>
+)}
         {userSession?.id ? (
           <>
             <li><Link href="/profile">🛠 แก้ไขโปรไฟล์</Link></li>

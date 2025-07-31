@@ -10,7 +10,8 @@ import Image from "next/image";
 type NewsItem = {
   id: string;
   title: string;
-  image_url: string;
+  images: string[];
+  cover_image_index: number;
   created_at: string;
 };
 
@@ -30,9 +31,9 @@ const FooterOne = () => {
     const fetchNews = async () => {
       const { data, error } = await supabase
         .from('store_news')
-        .select('id, title, image_url, created_at')
+        .select('id, title, images, cover_image_index, created_at')
         .order('created_at', { ascending: false })
-        .limit(2);
+        .limit(1);
       if (!error) setNewsList(data || []);
     };
 
@@ -95,26 +96,28 @@ const FooterOne = () => {
           <div className="col-12 col-lg-7">
             <div className="footer-widget-area mb-70">
               <h5 className="mb-4 text-white">ข่าวสารจากร้าน 🕊</h5>
-              <div className="row g-4">
-                {newsList.map((news) => (
-                  <div key={news.id} className="col-6">
-                    <div className="bg-white text-black rounded shadow-sm overflow-hidden h-100">
-                      {news.image_url && (
-                        <Image src={news.image_url} alt={news.title} width={400} height={150} className="w-full h-[150px] object-cover" />
-                      )}
-                      <div className="p-3">
-                        <h6 className="fw-bold mb-1">{news.title}</h6>
-                        <p className="text-muted mb-1 text-sm">
-                          🗓 {new Date(news.created_at).toLocaleDateString("th-TH", { year: 'numeric', month: 'short', day: 'numeric' })}
-                        </p>
-                        <Link href={`/news/${news.id}`} className="text-primary text-sm hover:underline">
-                          อ่านต่อ →
-                        </Link>
-                      </div>
-                    </div>
+              {newsList.map((news) => (
+                <div key={news.id} className="bg-white text-black rounded shadow-sm overflow-hidden">
+                  {news.images?.length > 0 && (
+                    <Image
+                      src={news.images[news.cover_image_index || 0]}
+                      alt={news.title}
+                      width={400}
+                      height={150}
+                      className="w-full h-[150px] object-cover"
+                    />
+                  )}
+                  <div className="p-3">
+                    <h6 className="fw-bold mb-1">{news.title}</h6>
+                    <p className="text-muted mb-1 text-sm">
+                      🗓 {new Date(news.created_at).toLocaleDateString("th-TH", { year: 'numeric', month: 'short', day: 'numeric' })}
+                    </p>
+                    <Link href={`/news/${news.id}`} className="text-primary text-sm hover:underline">
+                      อ่านต่อ →
+                    </Link>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

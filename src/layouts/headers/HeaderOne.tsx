@@ -3,9 +3,10 @@
 import UseSticky from '@/hooks/UseSticky';
 import Link from 'next/link';
 import NavMenu from './NavMenu';
-import MobileMenus from './mobile-menus';
+import ChatPopup from '@/components/classifieds/ChatPopup';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import MobileMenus from './mobile-menus'; // ✅ เพิ่ม import
 
 const HeaderOne = () => {
   const { sticky } = UseSticky();
@@ -31,7 +32,7 @@ const HeaderOne = () => {
     require('bootstrap/dist/js/bootstrap');
   }
 
-  const handleSearch = (e) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
@@ -43,24 +44,29 @@ const HeaderOne = () => {
       <header className={`header-area ${sticky ? 'sticky-on' : ''} ${openMenu ? 'mobile-menu-open' : ''}`}>
         <nav className="navbar navbar-expand-lg">
           <div className="container">
-
             <Link className="navbar-brand" href="/">
               <img className="light-logo" src="/assets/img/core-img/logo.png" alt="" />
               <img className="dark-logo" src="/assets/img/core-img/logo-white.png" alt="" />
             </Link>
 
-            <button onClick={() => setOpenMenu(!openMenu)} className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#funtoNav" aria-controls="funtoNav" aria-expanded="false" aria-label="Toggle navigation">
-              <i className="bi bi-grid"></i>
+            {/* ✅ ปุ่มเปิดเมนูมือถือ */}
+            <button
+              onClick={() => setOpenMenu((prev) => !prev)}
+              className="navbar-toggler d-block d-xl-none"
+              type="button"
+              aria-label="Toggle navigation"
+            >
+              <i className="bi bi-list"></i>
             </button>
 
-            {openMenu && <MobileMenus openMenu={openMenu} setOpenMenu={setOpenMenu} />}
-
+            {/* ✅ เมนู Desktop */}
             <div className="collapse navbar-collapse d-none d-xl-block" id="funtoNav">
               <NavMenu />
-
               <div className="header-meta d-flex align-items-center ms-lg-auto">
-
-                <form onSubmit={handleSearch} className="search-form position-relative d-flex align-items-center me-3">
+                <form
+                  onSubmit={handleSearch}
+                  className="search-form position-relative d-flex align-items-center me-3"
+                >
                   <input
                     className="form-control"
                     type="text"
@@ -72,18 +78,17 @@ const HeaderOne = () => {
                     <i className="bi bi-search"></i>
                   </button>
                 </form>
-
-                <div className="user-dropdown dropdown mx-3">
-                  
-                </div>
-
-            
-
               </div>
             </div>
-
           </div>
         </nav>
+
+        {/* ✅ เมนู Mobile */}
+        {openMenu && (
+          <div className="d-block d-xl-none position-absolute top-100 start-0 w-100 bg-white shadow">
+            <MobileMenus openMenu={openMenu} setOpenMenu={setOpenMenu} />
+          </div>
+        )}
       </header>
     </>
   );

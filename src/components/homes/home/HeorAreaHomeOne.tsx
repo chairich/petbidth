@@ -33,9 +33,9 @@ const HeorAreaHomeOne = () => {
 								>
 									<Link
 										className="btn btn-primary rounded-pill mt-3 me-3"
-										href="/forum"
+										href="/live-bidding"
 									>
-										ดูการใช้งานประมูล<i className="ms-2 bi bi-arrow-right"></i>
+										การประมูลทั้งหมด<i className="ms-2 bi bi-arrow-right"></i>
 									</Link>
 									<Link
 										className="btn btn-minimal hover-primary mt-3"

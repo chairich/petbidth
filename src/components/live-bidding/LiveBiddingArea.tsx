@@ -134,7 +134,7 @@ const LiveBiddingArea = () => {
                           className="btn btn-primary rounded-pill w-100 btn-sm mb-2"
                           href={`/auction/${item.id}`}
                         >
-                          เข้าร่วมประมูล
+                          ดูรายการประมูล
                         </Link>
                         {userRole === 'admin' && (
                           <Link
