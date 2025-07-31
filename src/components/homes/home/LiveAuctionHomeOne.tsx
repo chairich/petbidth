@@ -64,12 +64,9 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
   }, []);
 
   const handleJoinAuction = (auctionId: string) => {
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-    router.push(`/auction/${auctionId}`);
-  };
+  router.push(`/auction/${auctionId}`);
+};
+
 
   return (
     <div className={`live-bidding-wrapper ${style_2 ? '' : 'bg-gray pt-120 pb-120'}`}>
