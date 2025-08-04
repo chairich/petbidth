@@ -9,7 +9,8 @@ export default function DemoAuctionForLottery() {
   const router = useRouter()
   const supabase = createClientComponentClient()
 
-  const [session, setSession] = useState<any>(null)
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const [userName, setUserName] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
   const [canBid, setCanBid] = useState(false)
@@ -24,32 +25,44 @@ export default function DemoAuctionForLottery() {
     images: ['https://lhrszqycskubmmtisyou.supabase.co/storage/v1/object/public/news-images/news-images/1753945797789_0.jpg'],
   })
 
+  // โหลด user แบบเร็ว
   useEffect(() => {
-    const fetchSession = async () => {
+    const fetchUser = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      setSession(session)
+      const currentUser = session?.user
+      if (currentUser) setUser(currentUser)
+      setLoading(false)
     }
 
-    fetchSession()
+    fetchUser()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession)
+      if (newSession?.user) {
+        setUser(newSession.user)
+      } else {
+        setUser(null)
+      }
     })
 
-    return () => {
-      subscription.unsubscribe()
-    }
+    return () => subscription.unsubscribe()
   }, [])
 
+  // รีเซ็ต mock เมื่อ user มาใหม่
+  useEffect(() => {
+    if (!user) return
+    const key = `mock-bid-count-${auction.id}-${user.id}`
+    localStorage.removeItem(key)
+    setMockCount(0)
+    setBids([])
+    setAuction((prev) => ({ ...prev, current_price: prev.start_price }))
+  }, [user])
+
+  // ดึงโปรไฟล์
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!session?.user) return
+      if (!user) return
 
-      const { data: profile } = await supabase
-        .from('users')
-        .select('name, avatar_url')
-        .eq('id', session.user.id)
-        .single()
+      const { data: profile } = await supabase.from('users').select('name, avatar_url').eq('id', user.id).single()
 
       const name = profile?.name || ''
       const avatar = profile?.avatar_url || ''
@@ -61,10 +74,10 @@ export default function DemoAuctionForLottery() {
     }
 
     fetchProfile()
-  }, [session])
+  }, [user])
 
   const handleMockBid = () => {
-    if (!session?.user) {
+    if (!user) {
       alert('กรุณาเข้าสู่ระบบก่อนเคาะ')
       return
     }
@@ -74,7 +87,7 @@ export default function DemoAuctionForLottery() {
       return
     }
 
-    const userId = session.user.id
+    const userId = user.id
     const key = `mock-bid-count-${auction.id}-${userId}`
     const newCount = (Number(localStorage.getItem(key)) || 0) + 1
     localStorage.setItem(key, newCount.toString())
@@ -102,32 +115,35 @@ export default function DemoAuctionForLottery() {
     }
   }
 
+  if (loading) {
+    return <div className="text-center py-5 text-white">⏳ กำลังโหลดข้อมูล...</div>
+  }
+
   return (
     <div className="container py-5 text-white">
-      {!session?.user && <div className="alert alert-danger text-center">⚠️ ยังไม่ได้เข้าสู่ระบบ</div>}
-      {session?.user && !canBid && (
+      {!user && <div className="alert alert-danger text-center">⚠️ ยังไม่ได้เข้าสู่ระบบ</div>}
+      {user && !canBid && (
         <div className="alert alert-warning text-center">⚠️ บัญชีของคุณไม่มีสิทธิ์ร่วมกิจกรรมนี้</div>
       )}
 
       {userName && (
-  <div className="text-center mb-4">
-    <p className="text-green-400">สวัสดี 👤 คุณ: <strong>{userName}  👋</strong></p>
-    {avatarUrl && (
-      <img
-        src={avatarUrl}
-        alt="avatar"
-        width={64}
-        height={64}
-        className="mx-auto rounded-full mt-2"
-      />
-    )}
-    <p className="mt-3 text-white text-lg">
-    <br />
-     <h2> ขอเชิญสัมผัสบรรยากาศเคาะประมูล โดยเชิญร่วมเข้า!</h2><br />
-    </p>
-  </div>
-)}
-
+        <div className="text-center mb-4">
+          <p className="text-green-400">สวัสดี 👤 คุณ: <strong>{userName}  👋</strong></p>
+          {avatarUrl && (
+            <img
+              src={avatarUrl}
+              alt="avatar"
+              width={64}
+              height={64}
+              className="mx-auto rounded-full mt-2"
+            />
+          )}
+          <p className="mt-3 text-white text-lg">
+            <br />
+            <h2> ขอเชิญสัมผัสบรรยากาศเคาะประมูล โดยเชิญร่วมเข้า!</h2><br />
+          </p>
+        </div>
+      )}
 
       <div className="row g-4">
         <div className="col-lg-6">
