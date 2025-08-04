@@ -1,5 +1,5 @@
-'use client';
 
+'use client';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
@@ -17,6 +17,7 @@ export default function ChatPopup({ userId, receiverId, receiverName, userRole, 
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const markMessagesAsRead = async () => {
     await supabase
@@ -39,7 +40,13 @@ export default function ChatPopup({ userId, receiverId, receiverName, userRole, 
       console.error('Error loading messages:', error);
       return;
     }
+
     setMessages((data || []).reverse());
+
+    setTimeout(() => {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 300);
+
     await markMessagesAsRead();
     window.dispatchEvent(new Event('refresh-unread-count'));
   };
@@ -68,8 +75,21 @@ export default function ChatPopup({ userId, receiverId, receiverName, userRole, 
       }, async (payload) => {
         if (payload.new.sender_id === receiverId) {
           await loadMessages();
-          toast('📩 ข้อความใหม่เข้ามา');
         }
+
+        toast((t) => (
+          <span
+            className="cursor-pointer underline"
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('open-chat-with-user', {
+                detail: { userId: payload.new.sender_id, name: payload.new.sender?.name }
+              }));
+              toast.dismiss(t.id);
+            }}
+          >
+            📩 ข้อความใหม่จาก {payload.new.sender?.name || 'ผู้ใช้'} (แตะเพื่ออ่าน)
+          </span>
+        ), { duration: 6000 });
       })
       .subscribe();
 
@@ -77,6 +97,17 @@ export default function ChatPopup({ userId, receiverId, receiverName, userRole, 
       supabase.removeChannel(channel);
     };
   }, [userId, receiverId]);
+
+  useEffect(() => {
+    const handleFocus = () => {
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 300);
+    };
+    const currentInput = inputRef.current;
+    currentInput?.addEventListener('focus', handleFocus);
+    return () => currentInput?.removeEventListener('focus', handleFocus);
+  }, []);
 
   const sendMessage = async () => {
     if (!receiverId) {
@@ -107,7 +138,6 @@ export default function ChatPopup({ userId, receiverId, receiverName, userRole, 
 
     setInput('');
     await loadMessages();
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const deleteReadMessages = async () => {
@@ -129,8 +159,9 @@ export default function ChatPopup({ userId, receiverId, receiverName, userRole, 
 
   return (
     <div
-      id="chat-popup" style={{ backgroundColor: "#1e293b", color: "white" }}
-      className="fixed bottom-4 right-4 sm:top-20 sm:bottom-auto w-96 max-w-full bg-gray-900 text-white shadow-2xl rounded-3xl z-50 flex flex-col border border-gray-500"
+      id="chat-popup"
+      style={{ backgroundColor: "#1e293b", color: "white" }}
+      className="fixed bottom-0 left-0 right-0 sm:top-20 sm:bottom-auto w-full sm:w-96 max-w-full bg-gray-900 text-white shadow-2xl rounded-t-3xl z-[60] flex flex-col border border-gray-500 max-h-[80vh] overflow-hidden"
     >
       <div
         className="bg-gradient-to-r from-blue-700 to-blue-500 text-white p-4 rounded-t-3xl flex justify-between items-center shadow"
@@ -147,7 +178,7 @@ export default function ChatPopup({ userId, receiverId, receiverName, userRole, 
         </button>
       </div>
 
-      <div className="p-4 overflow-y-auto flex-1 max-h-[60vh] space-y-3" style={{ backgroundColor: "#1e293b", color: "white" }}>
+      <div className="p-4 overflow-y-auto flex-1 space-y-3 overscroll-contain">
         {messages.length === 0 ? (
           <div className="text-center text-gray-500">ยังไม่มีข้อความ</div>
         ) : (
@@ -158,11 +189,7 @@ export default function ChatPopup({ userId, receiverId, receiverName, userRole, 
                 key={msg.id || i}
                 className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-3`}
               >
-                <div className={`max-w-[75%] px-4 py-2 rounded-2xl shadow-md text-sm leading-relaxed ${
-      isMine
-        ? 'bg-blue-500 text-white border border-blue-600'
-        : 'bg-gray-700 text-white'
-    }`}>
+                <div className={`max-w-[75%] px-4 py-2 rounded-2xl shadow-md text-sm leading-relaxed ${isMine ? 'bg-blue-500 text-white border border-blue-600' : 'bg-gray-700 text-white'}`}>
                   <div className="text-xs text-gray-400 mb-1">
                     {isMine ? 'คุณ' : msg.sender?.name || 'ไม่ระบุ'} ➜ {msg.receiver?.name || 'ไม่ระบุ'}
                   </div>
@@ -177,8 +204,15 @@ export default function ChatPopup({ userId, receiverId, receiverName, userRole, 
 
       <div className="p-4 border-t bg-white space-y-3">
         <input
+          ref={inputRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              sendMessage();
+            }
+          }}
           className="w-full border border-gray-300 px-3 py-2 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
           placeholder="พิมพ์ข้อความ..."
         />
