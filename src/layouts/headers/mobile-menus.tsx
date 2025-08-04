@@ -93,6 +93,25 @@ const MobileMenus = ({ setOpenMenu, openMenu }: any) => {
     checkMessageHistory();
   }, [receiverId, userSession]);
 
+  useEffect(() => {
+    const handleOpenMessage = (event: any) => {
+      const { senderId, senderName } = event.detail;
+      if (senderId && senderName) {
+        setReceiverId(senderId);
+        setReceiverName(senderName);
+        setPendingSenderId(senderId);
+        setPendingSenderName(senderName);
+        setShowChat(true);
+        setOpenChatPopup(true);
+      }
+    };
+
+    window.addEventListener("open-message-from-notification", handleOpenMessage);
+    return () => {
+      window.removeEventListener("open-message-from-notification", handleOpenMessage);
+    };
+  }, []);
+
   const toggleDropdown = (menu: string, level: 1 | 2) => {
     if (level === 1) {
       setNavTitle(navTitle === menu ? "" : menu);
@@ -186,7 +205,7 @@ const MobileMenus = ({ setOpenMenu, openMenu }: any) => {
               )}
 
               <li><Link href="/profile">🛠 แก้ไขโปรไฟล์</Link></li>
-              <li><Link href="/games/LotteryBoard">🆕 รวมเล่นเกมส์</Link></li>
+              <li><Link href="/games/lotto-bid">🆕 รวมเล่นเกมส์</Link></li>
               <li>
                 <button
                   onClick={async () => {

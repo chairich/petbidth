@@ -288,7 +288,7 @@ const NavMenu = () => {
         {userSession?.id ? (
           <>
             <li><Link href="/profile">🛠 แก้ไขโปรไฟล์</Link></li>
-            <li><Link href="/games/LotteryBoard">🆕 รวมเล่นเกมส์</Link></li>
+            <li><Link href="/games/lotto-bid">🆕 รวมเล่นเกมส์</Link></li>
             <li>
             <button onClick={handleLogout} className="btn btn-link nav-link p-0">
               🚪 ออกจากระบบ

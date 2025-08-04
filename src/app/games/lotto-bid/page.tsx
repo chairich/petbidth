@@ -110,19 +110,24 @@ export default function DemoAuctionForLottery() {
       )}
 
       {userName && (
-        <div className="text-center mb-4">
-          <p className="text-green-400">👤 คุณ: <strong>{userName}</strong></p>
-          {avatarUrl && (
-            <img
-              src={avatarUrl}
-              alt="avatar"
-              width={64}
-              height={64}
-              className="mx-auto rounded-full mt-2"
-            />
-          )}
-        </div>
-      )}
+  <div className="text-center mb-4">
+    <p className="text-green-400">สวัสดี 👤 คุณ: <strong>{userName}  👋</strong></p>
+    {avatarUrl && (
+      <img
+        src={avatarUrl}
+        alt="avatar"
+        width={64}
+        height={64}
+        className="mx-auto rounded-full mt-2"
+      />
+    )}
+    <p className="mt-3 text-white text-lg">
+    <br />
+     <h2> ขอเชิญสัมผัสบรรยากาศเคาะประมูล โดยเชิญร่วมเข้า!</h2><br />
+    </p>
+  </div>
+)}
+
 
       <div className="row g-4">
         <div className="col-lg-6">
