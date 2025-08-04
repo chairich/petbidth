@@ -160,7 +160,7 @@ export default function ChatPopup({ userId, receiverId, receiverName, userRole, 
   return (
     <div
       id="chat-popup"
-      className="fixed inset-0 sm:inset-auto sm:bottom-auto sm:top-20 w-full sm:w-96 max-w-full bg-gray-900 text-white z-[60] flex flex-col border sm:rounded-t-3xl sm:shadow-2xl"
+      className="fixed inset-x-0 top-[150px] sm:inset-auto sm:top-20 w-full sm:w-96 max-w-full bg-gray-900 text-white z-[60] flex flex-col border sm:rounded-t-3xl sm:shadow-2xl"
     >
       <div
         className="bg-gradient-to-r from-blue-700 to-blue-500 text-white p-4 flex justify-between items-center shadow"
