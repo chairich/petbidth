@@ -160,11 +160,10 @@ export default function ChatPopup({ userId, receiverId, receiverName, userRole, 
   return (
     <div
       id="chat-popup"
-      style={{ backgroundColor: "#1e293b", color: "white" }}
-      className="fixed bottom-0 left-0 right-0 sm:top-20 sm:bottom-auto w-full sm:w-96 max-w-full bg-gray-900 text-white shadow-2xl rounded-t-3xl z-[60] flex flex-col border border-gray-500 max-h-[80vh] overflow-hidden"
+      className="fixed inset-0 sm:inset-auto sm:bottom-auto sm:top-20 w-full sm:w-96 max-w-full bg-gray-900 text-white z-[60] flex flex-col border sm:rounded-t-3xl sm:shadow-2xl"
     >
       <div
-        className="bg-gradient-to-r from-blue-700 to-blue-500 text-white p-4 rounded-t-3xl flex justify-between items-center shadow"
+        className="bg-gradient-to-r from-blue-700 to-blue-500 text-white p-4 flex justify-between items-center shadow"
         onDoubleClick={onClose}
         title="ดับเบิลคลิกเพื่อปิดแชท"
       >
@@ -202,7 +201,7 @@ export default function ChatPopup({ userId, receiverId, receiverName, userRole, 
         <div ref={bottomRef} />
       </div>
 
-      <div className="p-4 border-t bg-white space-y-3">
+      <div className="p-4 border-t bg-white space-y-3 pb-safe">
         <input
           ref={inputRef}
           value={input}
