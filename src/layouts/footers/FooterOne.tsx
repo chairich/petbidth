@@ -1,3 +1,4 @@
+
 "use client";
 import Link from "next/link";
 import useOnlineStatus from "@/hooks/useOnlineStatus";
@@ -80,6 +81,9 @@ const FooterOne = () => {
                 <img className="dark-logo" src="/assets/img/core-img/logo-white.png" alt="" />
               </Link>
               <p>แพลตฟอร์มแห่งความหวัง...ที่ซึ่งปีกแห่งรักโบยบินสู่บ้านใหม่.</p>
+              <p className="text-white text-sm opacity-80 mt-3">
+                เว็บไซต์ของเราเน้นบทความและการแบ่งปันประสบการณ์เกี่ยวกับการเลี้ยงนกกรีนชีค (Green Cheek Conure) และนกซันคอนัวร์ 🐦
+              </p>
               <p className="mb-0">โทร: 091 7030 732 <br /> อีเมล: tadadon2507@gmail.com</p>
 
               <h5 className="mt-4 mb-3">เข้าร่วมชุมชนเรา</h5>
@@ -156,7 +160,10 @@ const FooterOne = () => {
               petBIDthai.com
             </a>
           </div>
-          <div className="text-sm text-gray-400">
+          <div className="text-sm text-gray-400 text-center text-md-end">
+            <Link href="/blogs" className="me-3 text-white fw-semibold hover:underline">
+              📝 บทความนกกรีนชีค
+            </Link>
             <Link href="/privacy" className="me-3">นโยบายความเป็นส่วนตัว</Link>
             <Link href="/terms">ข้อกำหนด & เงื่อนไข</Link>
           </div>
