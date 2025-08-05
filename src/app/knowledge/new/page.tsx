@@ -1,8 +1,23 @@
+
 'use client'
 
 import React, { useState, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import dynamic from 'next/dynamic'
+import 'react-quill/dist/quill.snow.css'
+
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false })
+
+const quillModules = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline'],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    ['link'],
+    ['clean'],
+  ],
+};
 
 const CreateKnowledge = () => {
   const router = useRouter();
@@ -125,13 +140,11 @@ const CreateKnowledge = () => {
               placeholder="หัวข้อย่อย"
               required
             />
-            <textarea
-              className="form-control"
-              rows={4}
+            <ReactQuill
               value={section.body}
-              onChange={(e) => handleSectionChange(index, 'body', e.target.value)}
-              placeholder="เนื้อหาในหัวข้อนี้"
-              required
+              onChange={(value) => handleSectionChange(index, 'body', value)}
+              modules={quillModules}
+              theme="snow"
             />
             <button type="button" onClick={() => removeSection(index)} className="text-sm text-red-400 mt-2">
               ลบหัวข้อนี้

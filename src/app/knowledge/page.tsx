@@ -4,16 +4,19 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Database } from '@/types/supabase'
+import Image from 'next/image'
+import HeaderOne from '@/layouts/headers/HeaderOne'
+import FooterOne from '@/layouts/footers/FooterOne'
+import Divider from '@/components/common/Divider'
 
 export default function KnowledgePage() {
   const supabase = createClientComponentClient<Database>()
-
   const [userRole, setUserRole] = useState<string | null>(null)
   const [posts, setPosts] = useState<any[]>([])
 
   useEffect(() => {
-    const fetchUserAndPosts = async () => {
-      const { data: userData, error: userErr } = await supabase.auth.getUser()
+    const fetchData = async () => {
+      const { data: userData } = await supabase.auth.getUser()
       const userId = userData?.user?.id
       if (userId) {
         const { data: user } = await supabase
@@ -24,50 +27,58 @@ export default function KnowledgePage() {
         setUserRole(user?.role ?? null)
       }
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('knowledge_posts')
-        .select('id, title, created_at')
+        .select('id, title, images, created_at')
         .order('created_at', { ascending: false })
 
-      if (error) {
-        console.error('Error fetching posts:', error)
-      } else {
-        setPosts(data)
-      }
+      if (data) setPosts(data)
     }
 
-    fetchUserAndPosts()
+    fetchData()
   }, [])
 
   return (
-    <div className="p-6 text-white">
-      <h1 className="text-3xl font-bold mb-4 text-blue-300">บทความให้ความรู้</h1>
+    <>
+      <HeaderOne />
+      <section className="pt-12 pb-6 text-white">
+        <div className="container">
+          <h1 className="text-center text-3xl font-bold mb-6">🧠 บทความให้ความรู้</h1>
 
-      {userRole === 'admin' && (
-        <div className="mb-4 space-x-2">
-          <Link href="/knowledge/new" className="inline-flex items-center text-sm text-white hover:underline">
-            <span className="mr-1 text-xl">✚</span> เขียนบทความใหม่
-          </Link>
-          <Link href="/knowledge/my-posts" className="inline-flex items-center text-sm text-yellow-400 hover:underline">
-            ✏️ จัดการบทความของฉัน
-          </Link>
-        </div>
-      )}
-
-      <div className="mt-6 space-y-3">
-        {posts.length === 0 ? (
-          <p>ยังไม่มีบทความ</p>
-        ) : (
-          posts.map(post => (
-            <div key={post.id}>
-              <Link href={`/knowledge/${post.id}`} className="text-lg font-semibold text-blue-400 hover:underline">
-                {post.title}
-              </Link>
-              <div className="text-xs text-gray-400">โพสต์เมื่อ {new Date(post.created_at).toLocaleDateString('th-TH')}</div>
+          {userRole === 'admin' && (
+            <div className="text-center mb-6">
+              <Link href="/knowledge/new" className="btn btn-success mx-1">+ เขียนบทความ</Link>
+              <Link href="/knowledge/my-posts" className="btn btn-warning mx-1">✏️ จัดการบทความ</Link>
             </div>
-          ))
-        )}
-      </div>
-    </div>
+          )}
+
+          <div className="row">
+            {posts.map((post) => (
+              <div key={post.id} className="col-md-6 col-lg-4 mb-4">
+                <div className="bg-slate-900 rounded-lg shadow-md p-3 h-full flex flex-col justify-between">
+                  {post.images?.[0] && (
+                    <Image
+                      src={post.images[0]}
+                      alt={post.title}
+                      width={400}
+                      height={300}
+                      className="rounded mb-3 w-full h-[200px] object-cover"
+                    />
+                  )}
+                  <h2 className="text-lg font-semibold text-white line-clamp-2">{post.title}</h2>
+                  <div className="mt-3">
+                    <Link href={`/knowledge/${post.id}`} className="btn btn-primary w-full">
+                      อ่านเพิ่มเติม
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      <Divider />
+      <FooterOne />
+    </>
   )
 }
