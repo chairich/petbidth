@@ -4,9 +4,15 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: [
-      'lhrszqycskubmmtisyou.supabase.co', // ของ Supabase เดิม
-      'placehold.co',                     // ← ✅ เพิ่มอันนี้เข้าไป
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lhrszqycskubmmtisyou.supabase.co',
+      },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      },
     ],
   },
 };
