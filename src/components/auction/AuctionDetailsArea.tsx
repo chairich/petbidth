@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import DeleteBidButton from '@/components/admin/DeleteBidButton';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
-import { createClient } from '@supabase/supabase-js';
+
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
