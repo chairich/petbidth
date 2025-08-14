@@ -6,20 +6,49 @@ import React, { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabaseClient';
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 
-dayjs.extend(utc)
+dayjs.extend(utc);
 
+const PRE_FIRST_BID_MIN = 10;
+const POST_BID_MIN = 4;
+
+// เผื่อใช้ทีหลัง
 const MyTimer = dynamic(() => import('@/components/common/Timer'), { ssr: false });
 
+type Auction = {
+  id: string;
+  title: string;
+  description?: string;
+  start_time?: string | null;
+  start_price: number;
+  images?: string[];
+  cover_image_index?: number | null;
+  created_at: string;
+  created_by: string;
+  is_closed?: boolean | null;
+  video_url?: string | null;
+  users?: { avatar_url?: string | null; name?: string | null };
+  bids?: Array<{ id: string; bid_time?: string | null; created_at: string }>;
+};
+
 const LiveAuctionHomeOne = ({ style_2 }: any) => {
-  const [auctions, setAuctions] = useState<any[]>([]);
-  const [active, setActive] = useState(null);
+  const [auctions, setAuctions] = useState<Auction[]>([]);
+  const [active, setActive] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [videoUrl, setVideoUrl] = useState('');
+
+  // ===== helpers =====
+  const getBaseUtc = (a: Auction) => {
+    const b = a.bids?.[0];
+    const ts = b?.bid_time || b?.created_at || a.created_at;
+    return dayjs.utc(ts);
+  };
+  const getWindowMin = (a: Auction) => (a.bids && a.bids.length > 0 ? POST_BID_MIN : PRE_FIRST_BID_MIN);
+  const getDeadlineUtc = (a: Auction) => getBaseUtc(a).add(getWindowMin(a), 'minute');
 
   useEffect(() => {
     const fetchUser = () => {
@@ -39,34 +68,69 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
     fetchUser();
   }, []);
 
-  const handleActive = (id: any) => {
-    setActive(active === id ? null : id);
+  const handleActive = (id: string) => {
+    setActive((prev) => (prev === id ? null : id));
   };
 
   useEffect(() => {
-    const fetchAuctions = async () => {
-      const now = new Date().toISOString();
-      const { data, error } = await supabase
-        .from('auctions')
-        .select('*, users:users!auctions_created_by_fkey(avatar_url, name)')
-        .eq('status', 'active')
-        .gte('end_time', now)
-        .order('created_at', { ascending: false });
+  const fetchAuctions = async () => {
+    const { data, error } = await supabase
+      .from('auctions')
+      .select(`
+        *,
+        users:users!auctions_created_by_fkey(avatar_url,name),
+        bids(id, bid_time, created_at)
+      `)
+      .eq('is_closed', false)          // ตัดที่ปิดแล้วออกก่อน
+      .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching auctions:', error);
-      } else {
-        setAuctions(data);
-      }
+    if (error) {
+      console.error('Error fetching auctions:', error);
+      setAuctions([]);
+      return;
+    }
+
+    // เรียง bids ล่าสุดก่อน
+    const normalized = (data || []).map((a: any) => ({
+      ...a,
+      bids: (a.bids || []).sort(
+        (x: any, y: any) =>
+          dayjs.utc(y.bid_time || y.created_at).valueOf() -
+          dayjs.utc(x.bid_time || x.created_at).valueOf()
+      ),
+    }));
+
+    // filter: เอาเฉพาะ "รอเริ่ม" หรือ "กำลังประมูล"
+    const now = dayjs.utc();
+    const getBaseUtc = (au: any) => {
+      const b = au.bids?.[0];
+      const ts = b?.bid_time || b?.created_at || au.created_at;
+      return dayjs.utc(ts);
     };
+    const getWindowMin = (au: any) => (au.bids && au.bids.length > 0 ? 4 : 10);
+    const getDeadlineUtc = (au: any) => getBaseUtc(au).add(getWindowMin(au), 'minute');
 
-    fetchAuctions();
-  }, []);
+    const filtered = normalized.filter((au: any) => {
+      const start = au.start_time ? dayjs.utc(au.start_time) : null;
+      const notStarted = start ? now.isBefore(start) : false;
+      const estimatedEnded = now.isAfter(getDeadlineUtc(au));
+      const isLive = !notStarted && !estimatedEnded;
+      // ✅ เอาเฉพาะ รอเริ่ม หรือ กำลังประมูล
+      return notStarted || isLive;
+    });
+
+    setAuctions(filtered);
+  };
+
+  fetchAuctions();
+}, []);
+
 
   const handleJoinAuction = (auctionId: string) => {
-  router.push(`/auction/${auctionId}`);
-};
+    router.push(`/auction/${auctionId}`);
+  };
 
+  const now = dayjs.utc();
 
   return (
     <div className={`live-bidding-wrapper ${style_2 ? '' : 'bg-gray pt-120 pb-120'}`}>
@@ -91,95 +155,51 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
       <div className="container">
         <div className="row g-4 justify-content-center">
           {[...auctions]
-            .sort((a, b) => dayjs.utc(a.end_time).diff(dayjs.utc()) - dayjs.utc(b.end_time).diff(dayjs.utc()))
+            // เรียงรายการใกล้หมดเวลาก่อน (ฐาน + 10/4 นาที)
+            .sort((a, b) => getDeadlineUtc(a).diff(now) - getDeadlineUtc(b).diff(now))
             .slice(0, 4)
             .map((item, i) => {
-              const isEnded = dayjs.utc().isAfter(dayjs.utc(item.end_time));
+              const start = item.start_time ? dayjs.utc(item.start_time) : null;
+              const notStarted = start ? now.isBefore(start) : false;
+              const estimatedEnded = now.isAfter(getDeadlineUtc(item));
+              const isEnded = !!item.is_closed || estimatedEnded;
+
+              // live = เริ่มแล้ว และยังไม่จบ (ตามกติกา)
+              const isLive = !notStarted && !isEnded;
+
               return (
-                <div key={i} className="col-12 col-sm-6 col-lg-4 col-xl-3">
+                <div key={item.id || i} className="col-12 col-sm-6 col-lg-4 col-xl-3">
                   <div className="nft-card card border-0">
                     <div className="card-body">
                       <div className="img-wrap position-relative">
-              {(() => {
-                const now = dayjs.utc();
-                const start = dayjs.utc(item.start_time);
-                const end = dayjs.utc(item.end_time);
-                const isBeforeStart = now.isBefore(start);
-                const isEnded = now.isAfter(end);
-                const isLive = !isBeforeStart && !isEnded;
 
-                if (isBeforeStart) {
-                  return (
-                    <div style={{
-                      position: 'absolute',
-                      top: 10,
-                      left: 10,
-                      backgroundColor: '#FFD700',
-                      color: '#000',
-                      fontWeight: 'bold',
-                      padding: '3px 8px',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                      zIndex: 10,
-                    }}>
-                      รอเริ่มประมูล
-                    </div>
-                  );
-                } else if (isLive) {
-                  return (
-                    <div style={{
-                      position: 'absolute',
-                      top: 10,
-                      left: 10,
-                      backgroundColor: '#28a745',
-                      color: '#fff',
-                      fontWeight: 'bold',
-                      padding: '3px 8px',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                      zIndex: 10,
-                    }}>
-                      กำลังประมูล
-                    </div>
-                  );
-                } else if (isEnded) {
-                  return (
-                    <div style={{
-                      position: 'absolute',
-                      top: 10,
-                      left: 10,
-                      backgroundColor: '#6c757d',
-                      color: '#fff',
-                      fontWeight: 'bold',
-                      padding: '3px 8px',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                      zIndex: 10,
-                    }}>
-                      ปิดประมูลแล้ว
-                    </div>
-                  );
-                }
-              })()}
+                        {/* badge สถานะ */}
+                        {notStarted ? (
+                          <div style={badgeStyle('#FFD700', '#000')}>รอเริ่มประมูล</div>
+                        ) : isLive ? (
+                          <div style={badgeStyle('#28a745', '#fff')}>กำลังประมูล</div>
+                        ) : (
+                          <div style={badgeStyle('#6c757d', '#fff')}>ปิดประมูลแล้ว</div>
+                        )}
 
-                        
-{item.video_url && (
-  <button
-    className="btn btn-outline-light btn-sm mt-2 w-100"
-    onClick={() => {
-      setVideoUrl(item.video_url);
-      setShowVideoModal(true);
-    }}
-  >
-    🎥 ดูวิดีโอ
-  </button>
-)}
+                        {/* ปุ่มดูวิดีโอ (ถ้ามี) */}
+                        {item.video_url && (
+                          <button
+                            className="btn btn-outline-light btn-sm mt-2 w-100"
+                            onClick={() => {
+                              setVideoUrl(item.video_url!);
+                              setShowVideoModal(true);
+                            }}
+                          >
+                            🎥 ดูวิดีโอ
+                          </button>
+                        )}
 
                         <img
                           src={item.images?.[item.cover_image_index || 0] || '/assets/img/default.jpg'}
                           alt="auction"
                         />
-                        
+
                         <div className="dropdown">
                           <button
                             onClick={() => handleActive(item.id)}
@@ -197,13 +217,13 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
                             <li><a className="dropdown-item" href="#"><i className="me-1 bi bi-bookmark"></i>บันทึก</a></li>
                           </ul>
                         </div>
-                        
+
                       </div>
 
                       <div className="row gx-2 align-items-center mt-3" style={{ color: '#8084AE' }}>
                         <div className="col-8">
                           <span className="d-block fz-12">
-                            <i className="bi bi-bag me-1"></i>{item.category || 'ไม่ระบุหมวดหมู่'}
+                            <i className="bi bi-bag me-1"></i>{(item as any).category || 'ไม่ระบุหมวดหมู่'}
                           </span>
                         </div>
                         <div className="col-4 text-end">
@@ -235,7 +255,7 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
                         <div className="col-4" style={{ color: '#8084AE' }}>
                           <div className="price text-end">
                             <span className="fz-12 d-block">ราคาเริ่มต้น</span>
-                            <h6 className="mb-0">{item.start_price} บาท</h6>
+                            <h6 className="mb-0">{Number(item.start_price).toLocaleString()} บาท</h6>
                           </div>
                         </div>
                         <div className="col-12">
@@ -255,35 +275,49 @@ const LiveAuctionHomeOne = ({ style_2 }: any) => {
             })}
         </div>
       </div>
-    
-{showVideoModal && (
-  <div className="modal show d-block" tabIndex={-1}>
-    <div className="modal-dialog modal-dialog-centered modal-lg">
-      <div className="modal-content">
-        <div className="modal-header">
-          <h5 className="modal-title">ชมวิดีโอ</h5>
-          <button type="button" className="btn-close" onClick={() => setShowVideoModal(false)}></button>
-        </div>
-        <div className="modal-body">
-          {videoUrl.endsWith(".mp4") ? (
-            <video controls width="100%" src={videoUrl}></video>
-          ) : (
-            <div className="ratio ratio-16x9">
-              <iframe
-                src={videoUrl.includes("youtube.com/watch") ? videoUrl.replace("watch?v=", "embed/") : videoUrl}
-                title="วิดีโอ"
-                allowFullScreen
-              ></iframe>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  </div>
-)}
 
-</div>
+      {/* วิดีโอโมดัล */}
+      {showVideoModal && (
+        <div className="modal show d-block" tabIndex={-1}>
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">ชมวิดีโอ</h5>
+                <button type="button" className="btn-close" onClick={() => setShowVideoModal(false)}></button>
+              </div>
+              <div className="modal-body">
+                {videoUrl.endsWith('.mp4') ? (
+                  <video controls width="100%" src={videoUrl}></video>
+                ) : (
+                  <div className="ratio ratio-16x9">
+                    <iframe
+                      src={videoUrl.includes('youtube.com/watch') ? videoUrl.replace('watch?v=', 'embed/') : videoUrl}
+                      title="วิดีโอ"
+                      allowFullScreen
+                    ></iframe>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
   );
 };
+
+const badgeStyle = (bg: string, color: string): React.CSSProperties => ({
+  position: 'absolute',
+  top: 10,
+  left: 10,
+  backgroundColor: bg,
+  color,
+  fontWeight: 'bold',
+  padding: '3px 8px',
+  borderRadius: '8px',
+  fontSize: '12px',
+  zIndex: 10,
+});
 
 export default LiveAuctionHomeOne;
