@@ -44,6 +44,23 @@ const CreateAuction = () => {
     setCoverImageIndex(0);
   };
 
+  // === Helper: ย้ายรูปภาพ พร้อมอัปเดต cover ให้ตามรูปเดิม ===
+  const moveImage = (from: number, to: number) => {
+    if (to < 0 || to >= images.length || from === to) return;
+    const newImages = [...images];
+    const [moved] = newImages.splice(from, 1);
+    newImages.splice(to, 0, moved);
+
+    // ปรับตำแหน่ง cover ให้ตามรูปเดิม
+    let newCoverIndex = coverImageIndex;
+    if (coverImageIndex === from) newCoverIndex = to;
+    else if (coverImageIndex > from && coverImageIndex <= to) newCoverIndex = coverImageIndex - 1;
+    else if (coverImageIndex < from && coverImageIndex >= to) newCoverIndex = coverImageIndex + 1;
+
+    setImages(newImages);
+    setCoverImageIndex(newCoverIndex);
+  };
+
   const uploadImages = async (): Promise<string[]> => {
     const urls: string[] = [];
     for (let i = 0; i < images.length; i++) {
@@ -106,7 +123,7 @@ const CreateAuction = () => {
       start_time: startTime.utc().toISOString(),
       end_time: endTime.utc().toISOString(),
       cover_image_index: coverImageIndex,
-      images: imageUrls,
+      images: imageUrls, // อัปโหลดตามลำดับที่ผู้ใช้จัดไว้
       overlay_text: formData.overlay_text,
       video_url: formData.video_url,
       created_by: userData.user.id,
@@ -191,16 +208,61 @@ const CreateAuction = () => {
         <div className="mb-3">
           <label>อัปโหลดรูปภาพ (สูงสุด 5 รูป)</label>
           <input type="file" multiple accept="image/*" className="form-control" onChange={handleImageChange} />
+
           {images.length > 0 && (
             <div className="mt-2 d-flex gap-2 flex-wrap">
               {images.map((img, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => setCoverImageIndex(idx)}
-                  style={{ cursor: 'pointer', border: coverImageIndex === idx ? '2px solid blue' : 'none' }}
-                >
-                  <img src={URL.createObjectURL(img)} alt={`img-${idx}`} width={80} height={80} />
-                  <div className="text-center">{coverImageIndex === idx ? 'หน้าปก' : ''}</div>
+                <div key={idx} style={{ textAlign: 'center' }}>
+                  <div
+                    onClick={() => setCoverImageIndex(idx)}
+                    style={{
+                      cursor: 'pointer',
+                      border: coverImageIndex === idx ? '2px solid blue' : '1px solid #ccc',
+                      padding: '4px',
+                      borderRadius: 6,
+                      position: 'relative',
+                    }}
+                  >
+                    <img src={URL.createObjectURL(img)} alt={`img-${idx}`} width={96} height={96} />
+                    {/* Badge แสดงลำดับ 1..5 */}
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: 4,
+                        left: 4,
+                        background: 'rgba(0,0,0,0.6)',
+                        color: '#fff',
+                        fontSize: 12,
+                        padding: '2px 6px',
+                        borderRadius: 4,
+                      }}
+                    >
+                      {idx + 1}
+                    </span>
+                    <div style={{ fontSize: 12, marginTop: 4 }}>{coverImageIndex === idx ? 'หน้าปก' : '\u00A0'}</div>
+                  </div>
+
+                  {/* ปุ่มเลื่อนขึ้น/ลง เพื่อจัดลำดับ */}
+                  <div className="mt-1 d-flex justify-content-center gap-1">
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary"
+                      onClick={() => moveImage(idx, idx - 1)}
+                      disabled={idx === 0}
+                      title="เลื่อนขึ้น"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary"
+                      onClick={() => moveImage(idx, idx + 1)}
+                      disabled={idx === images.length - 1}
+                      title="เลื่อนลง"
+                    >
+                      ↓
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
