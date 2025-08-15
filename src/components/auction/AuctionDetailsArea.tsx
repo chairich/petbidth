@@ -56,12 +56,28 @@ export default function LiveAuctionPage() {
   // กันยิงอัปเดตปิด DB ซ้ำ ๆ
   const closeSentRef = useRef(false);
 
-  // ===== Helpers =====
-  function getBaseUtc(auctionData: AuctionRow, bidsArr: any[]) {
-    // เวลาอ้างอิง: บิดล่าสุด (ถ้าไม่มี ใช้เวลาสร้างโพสต์)
-    const ts = bidsArr?.[0]?.bid_time || bidsArr?.[0]?.created_at || auctionData.created_at;
-    return dayjs.utc(ts);
+  /* ===== Helpers ที่แก้ไขแล้ว ===== */
+
+  // true ถ้าเวลาปัจจุบันหลัง start_time
+  function checkStarted(a: AuctionRow) {
+    if (!a?.start_time) return true; // ถ้าไม่ได้ตั้ง start_time ถือว่าเริ่มแล้ว
+    return dayjs.utc().isAfter(dayjs.utc(a.start_time));
   }
+
+  // ฐานเวลา:
+  // - ก่อนเริ่ม: ใช้ start_time (แต่ "ห้ามปิด")
+  // - เริ่มแล้ว + ยังไม่มีบิด: ใช้ start_time
+  // - มีบิด: ใช้เวลาบิดล่าสุด
+  function getDeadlineBaseUtc(a: AuctionRow, bidsArr: any[]) {
+    const startUtc = a.start_time ? dayjs.utc(a.start_time) : dayjs.utc(a.created_at);
+    if (bidsArr && bidsArr.length > 0) {
+      const last = bidsArr[0];
+      const lastUtc = dayjs.utc(last.bid_time || last.created_at);
+      return lastUtc.isAfter(startUtc) ? lastUtc : startUtc;
+    }
+    return startUtc;
+  }
+
   function getWindowMinutes(bidsArr: any[]) {
     return bidsArr && bidsArr.length > 0 ? POST_BID_MIN : PRE_FIRST_BID_MIN;
   }
@@ -90,12 +106,10 @@ export default function LiveAuctionPage() {
     return () => clearInterval(fetchInterval);
   }, [id]);
 
-  // เริ่มประมูลหรือยัง (ใช้ start_time ถ้ามี)
+  // sync สถานะเริ่ม/ยัง
   useEffect(() => {
-    if (!auction?.start_time) return;
-    const now = dayjs().tz('Asia/Bangkok');
-    const start = dayjs.utc(auction.start_time).tz('Asia/Bangkok');
-    setHasStarted(now.isAfter(start));
+    if (!auction) return;
+    setHasStarted(checkStarted(auction));
   }, [auction]);
 
   const fetchAuction = async () => {
@@ -123,12 +137,17 @@ export default function LiveAuctionPage() {
     }
   };
 
-  // ปิดอัตโนมัติ: ไม่มีการบิดเกิน window (10m ก่อนบิดแรก / 4m หลังมีบิด)
+  // ปิดอัตโนมัติ: ห้ามปิดก่อนเริ่ม!
   const handleAutoCloseLogic = async (auctionData: AuctionRow, bidsArr: any[]) => {
     if (!auctionData || auctionData.is_closed) return;
-    const baseUtc = getBaseUtc(auctionData, bidsArr);
+
+    // ❌ ยังไม่เริ่ม → ไม่ต้องปิด
+    if (!checkStarted(auctionData)) return;
+
+    const baseUtc = getDeadlineBaseUtc(auctionData, bidsArr);
     const windowMin = getWindowMinutes(bidsArr);
     const nowUtc = dayjs.utc();
+
     if (nowUtc.diff(baseUtc) > windowMin * 60 * 1000) {
       if (closeSentRef.current) return;
       closeSentRef.current = true;
@@ -137,17 +156,42 @@ export default function LiveAuctionPage() {
     }
   };
 
-  // นับถอยหลังแบบ hybrid
+  // นับถอยหลัง (รองรับช่วง "ก่อนเริ่ม")
   useEffect(() => {
     const interval = setInterval(async () => {
       if (!auction) return;
 
-      const baseUtc = getBaseUtc(auction, bids);
-      const windowMin = getWindowMinutes(bids);
-      const deadlineUtc = baseUtc.add(windowMin, 'minute');
       const nowUtc = dayjs.utc();
 
+      // ⏳ ยังไม่เริ่ม → นับสู่เวลา start_time และไม่ปิด
+      if (!checkStarted(auction) && auction.start_time) {
+        const startUtc = dayjs.utc(auction.start_time);
+        const diff = startUtc.diff(nowUtc);
+
+        if (diff <= 0) {
+          setHasStarted(true);
+          setIsExpiredClient(false);
+          setIsUrgent(false);
+          setT({ d: 0, h: 0, m: 0, s: 0 });
+        } else {
+          const seconds = Math.floor((diff / 1000) % 60);
+          const minutes = Math.floor((diff / 1000 / 60) % 60);
+          const hours = Math.floor((diff / 1000 / 60 / 60) % 24);
+          const days = Math.floor(diff / 1000 / 60 / 60 / 24);
+          setIsUrgent(diff <= 30 * 1000);
+          setIsExpiredClient(false);
+          setTimeLeft(`${days} วัน ${hours} ชม. ${minutes} นาที ${seconds} วิ`);
+          setT({ d: days, h: hours, m: minutes, s: seconds });
+        }
+        return; // ไม่ทำ logic ปิด
+      }
+
+      // ▶️ เริ่มแล้ว
+      const baseUtc = getDeadlineBaseUtc(auction, bids);
+      const windowMin = getWindowMinutes(bids);
+      const deadlineUtc = baseUtc.add(windowMin, 'minute');
       const diff = deadlineUtc.diff(nowUtc);
+
       setIsUrgent(diff <= 30 * 1000); // 30 วิสุดท้าย
 
       if (diff <= 0) {

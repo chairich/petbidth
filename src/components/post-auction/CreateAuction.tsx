@@ -4,6 +4,11 @@ import React, { useState, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const CreateAuction = () => {
   const router = useRouter();
@@ -13,13 +18,16 @@ const CreateAuction = () => {
     description: '',
     start_price: '',
     start_time: '',
+    overlay_text: ``,
+    video_url: '',
   });
+
   const [images, setImages] = useState<File[]>([]);
   const [coverImageIndex, setCoverImageIndex] = useState(0);
   const [uploading, setUploading] = useState(false);
 
-  // ✅ แอดมินเลือกขั้นต่ำ 20/50/100
-  const [bidRoomStep, setBidRoomStep] = useState<number>(100);
+  // ✅ เพิ่มตัวเลือก “ตั้งห้อง (ขั้นต่ำต่อครั้ง)”
+  const [bidStep, setBidStep] = useState<number>(100); // 20 | 50 | 100
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -32,131 +40,172 @@ const CreateAuction = () => {
       alert('สามารถอัปโหลดได้สูงสุด 5 รูปเท่านั้น');
       return;
     }
-    setImages(files as File[]);
+    setImages(files);
+    setCoverImageIndex(0);
   };
 
   const uploadImages = async (): Promise<string[]> => {
     const urls: string[] = [];
-    for (const file of images) {
-      const fileName = `${Date.now()}-${file.name}`;
-      const { data, error } = await supabase.storage.from('auction-images').upload(fileName, file);
-      if (error) throw error;
-      const { data: publicUrl } = supabase.storage.from('auction-images').getPublicUrl(fileName);
-      urls.push(publicUrl.publicUrl);
+    for (let i = 0; i < images.length; i++) {
+      const file = images[i];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${i}.${fileExt}`;
+      // เก็บไฟล์ใน bucket: auction-images (โฟลเดอร์ย่อย auction-images/)
+      const filePath = `auction-images/${fileName}`;
+      const { error } = await supabase.storage.from('auction-images').upload(filePath, file);
+      if (error) {
+        alert('เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ: ' + error.message);
+        return [];
+      }
+      const { data } = supabase.storage.from('auction-images').getPublicUrl(filePath);
+      urls.push(data.publicUrl);
     }
     return urls;
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (uploading) return;
-  try {
-    setUploading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    const startPrice = Number(formData.start_price || 0);
-    if (![20, 50, 100].includes(bidRoomStep)) {
-      alert('ขั้นต่ำต่อครั้งต้องเป็น 20, 50 หรือ 100 เท่านั้น');
+    if (!formData.title || !formData.description || !formData.start_price || !formData.start_time) {
+      alert('กรุณากรอกข้อมูลให้ครบทุกช่อง');
+      return;
+    }
+    if (images.length === 0) {
+      alert('กรุณาอัปโหลดรูปภาพอย่างน้อย 1 รูป');
+      return;
+    }
+
+    // ✅ ตรวจสอบค่าตั้งห้อง
+    if (![20, 50, 100].includes(Number(bidStep))) {
+      alert('ตั้งห้องต้องเป็น 20, 50 หรือ 100 เท่านั้น');
+      return;
+    }
+
+    setUploading(true);
+    const imageUrls = await uploadImages();
+    if (imageUrls.length === 0) {
       setUploading(false);
       return;
     }
 
-    let imageUrls: string[] = [];
-    if (images.length > 0) {
-      imageUrls = await uploadImages();
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      alert('กรุณาเข้าสู่ระบบก่อนสร้างประมูล');
+      setUploading(false);
+      return;
     }
 
-    const { data: sessionData } = await supabase.auth.getSession();
-    const userId = sessionData?.session?.user?.id;
+    // แปลงเวลา input (เวลาไทย) -> UTC ก่อนส่งเข้า DB
+    const startTime = dayjs.tz(formData.start_time, 'Asia/Bangkok');
+    const endTime = startTime.add(10, 'minute');
 
-    const payload: any = {
+    const newAuction = {
       title: formData.title,
       description: formData.description,
-      start_price: startPrice,
-      start_time: formData.start_time ? dayjs(formData.start_time).toISOString() : null,
-      images: imageUrls,
+      start_price: parseFloat(formData.start_price),
+      start_time: startTime.utc().toISOString(),
+      end_time: endTime.utc().toISOString(),
       cover_image_index: coverImageIndex,
-      created_by: userId,
-      bid_step: bidRoomStep,
+      images: imageUrls,
+      overlay_text: formData.overlay_text,
+      video_url: formData.video_url,
+      created_by: userData.user.id,
+      is_closed: false,
+      created_at: dayjs().tz('Asia/Bangkok').utc().toISOString(),
+      // ✅ บันทึกขั้นต่ำต่อครั้ง (ตั้งห้อง)
+      bid_step: Number(bidStep),
     };
 
-    // ⬇️ เปลี่ยนตรงนี้: insert และดึง id กลับมา
-    const { data: inserted, error } = await supabase
-      .from('auctions')
-      .insert([payload])
-      .select('id')
-      .single();
+    const { data, error } = await supabase.from('auctions').insert(newAuction).select().single();
 
-    if (error) throw error;
+    if (error) {
+      alert('เกิดข้อผิดพลาด: ' + error.message);
+      setUploading(false);
+      return;
+    }
 
-    alert('สร้างกระทู้ประมูลสำเร็จ');
-    // ⬇️ เปลี่ยนจาก /admin/auctions เป็นหน้า auction ที่สร้าง
-    router.push(`/auction/${inserted.id}`);
-  } catch (err: any) {
-    alert('เกิดข้อผิดพลาดในการสร้าง: ' + err.message);
-  } finally {
-    setUploading(false);
-  }
-};
-
+    alert('สร้างกระทู้ประมูลเรียบร้อยแล้ว');
+    router.push(`/auction/${data.id}`);
+  };
 
   return (
-    <div className="container py-4">
-      <h2>สร้างกระทู้ประมูล</h2>
-
+    <div className="container py-5">
+      <h2>สร้างกระทู้ประมูลใหม่</h2>
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <label className="form-label">ชื่อสินค้า</label>
-          <input className="form-control" name="title" value={formData.title} onChange={handleChange} required />
+          <label>ชื่อประมูล</label>
+          <input type="text" name="title" className="form-control" value={formData.title} onChange={handleChange} required />
         </div>
-
         <div className="mb-3">
-          <label className="form-label">รายละเอียด</label>
-          <textarea className="form-control" name="description" value={formData.description} onChange={handleChange} />
+          <label>รายละเอียด</label>
+          <textarea name="description" className="form-control" rows={4} value={formData.description} onChange={handleChange} required></textarea>
         </div>
-
-        <div className="row">
-          <div className="col-md-6 mb-3">
-            <label className="form-label">ราคาเริ่มต้น (บาท)</label>
-            <input type="number" className="form-control" name="start_price" value={formData.start_price} onChange={handleChange} required />
-          </div>
-          <div className="col-md-6 mb-3">
-            <label className="form-label">เริ่มประมูล</label>
-            <input type="datetime-local" className="form-control" name="start_time" value={formData.start_time} onChange={handleChange} />
-          </div>
-        </div>
-
-        {/* ✅ เลือกขั้นต่ำต่อครั้ง */}
         <div className="mb-3">
-          <label className="form-label">ขั้นต่ำต่อครั้ง (แยกห้อง)</label>
-          <select className="form-select" value={bidRoomStep} onChange={(e) => setBidRoomStep(Number(e.target.value))}>
+          <label>ราคาเริ่มต้น (บาท)</label>
+          <input type="number" name="start_price" className="form-control" value={formData.start_price} onChange={handleChange} required min="0" step="0.01" />
+        </div>
+        <div className="mb-3">
+          <label>วันเวลาเริ่มต้น (เวลาไทย 24h)</label>
+          <input
+            type="datetime-local"
+            name="start_time"
+            className="form-control"
+            value={formData.start_time}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        {/* ✅ เลือกตั้งห้อง: 20 / 50 / 100 */}
+        <div className="mb-3">
+          <label>ตั้งห้อง (ขั้นต่ำต่อครั้ง)</label>
+          <select
+            className="form-select"
+            value={bidStep}
+            onChange={(e) => setBidStep(Number(e.target.value))}
+          >
             <option value={20}>20 บาท</option>
             <option value={50}>50 บาท</option>
             <option value={100}>100 บาท</option>
           </select>
+          <div className="form-text">กำหนดว่าต้องเพิ่มราคาเคาะขั้นต่ำครั้งละเท่าไร</div>
         </div>
 
         <div className="mb-3">
-          <label className="form-label">รูปภาพ (สูงสุด 5 รูป)</label>
-          <input type="file" accept="image/*" multiple className="form-control" onChange={handleImageChange} />
+          <label>ลิงก์วิดีโอ (YouTube, TikTok หรือ MP4)</label>
+          <input
+            type="text"
+            name="video_url"
+            className="form-control"
+            value={formData.video_url}
+            onChange={handleChange}
+            placeholder="https://www.youtube.com/watch?v=..."
+          />
         </div>
 
-        {images.length > 0 && (
-          <div className="mb-3">
-            <label className="form-label">ภาพหน้าปก</label>
-            <div className="d-flex gap-2 flex-wrap">
-              {images.map((file, idx) => (
-                <button
-                  type="button"
+        <div className="mb-3">
+          <label>ข้อความที่จะแสดงบนภาพแรก</label>
+          <textarea name="overlay_text" className="form-control" rows={3} value={formData.overlay_text} onChange={handleChange} />
+        </div>
+
+        <div className="mb-3">
+          <label>อัปโหลดรูปภาพ (สูงสุด 5 รูป)</label>
+          <input type="file" multiple accept="image/*" className="form-control" onChange={handleImageChange} />
+          {images.length > 0 && (
+            <div className="mt-2 d-flex gap-2 flex-wrap">
+              {images.map((img, idx) => (
+                <div
                   key={idx}
-                  className={`btn btn-sm ${coverImageIndex === idx ? 'btn-primary' : 'btn-outline-primary'}`}
                   onClick={() => setCoverImageIndex(idx)}
+                  style={{ cursor: 'pointer', border: coverImageIndex === idx ? '2px solid blue' : 'none' }}
                 >
-                  รูปที่ {idx + 1}
-                </button>
+                  <img src={URL.createObjectURL(img)} alt={`img-${idx}`} width={80} height={80} />
+                  <div className="text-center">{coverImageIndex === idx ? 'หน้าปก' : ''}</div>
+                </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         <button type="submit" className="btn btn-primary" disabled={uploading}>
           {uploading ? 'กำลังสร้าง...' : 'สร้างกระทู้ประมูล'}
