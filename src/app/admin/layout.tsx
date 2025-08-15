@@ -8,7 +8,7 @@ export default function EditAuctionLayout({ children }: { children: React.ReactN
   return (
     <>
       <HeaderOne />
-      
+      <Divider />
       {children}
       <Divider />
       <FooterOne />
