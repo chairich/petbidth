@@ -265,11 +265,7 @@ export default function LiveAuctionPage() {
     if (newBid < current + step) {
       return alert(`ราคาที่บิดต้องมากกว่าราคาปัจจุบันอย่างน้อย ${step.toLocaleString()} บาท`);
     }
-    // ต้องเพิ่มเป็นจำนวนเท่าของ step
-    if ((newBid - current) % step !== 0) {
-      return alert(`ต้องเพิ่มราคาเป็นจำนวนเท่าของ ${step} บาท (เช่น +${step}, +${step * 2})`);
-    }
-
+    
     const latestBid = bids[0];
     if (latestBid && latestBid.bid_price === newBid) {
       return alert('ราคานี้ถูกเสนอไปแล้ว กรุณาเพิ่มราคาสูงขึ้น');
@@ -583,14 +579,17 @@ export default function LiveAuctionPage() {
               </div>
               <div className="modal-body">
                 <input
-                  type="number"
-                  step={step}
-                  value={bidPrice}
-                  onChange={(e) => setBidPrice(e.target.value)}
-                  className="form-control"
-                  placeholder={`เช่น ${(Number(bids[0]?.bid_price ?? auction.start_price) + step).toLocaleString()}`}
-                />
-                <small className="text-muted">ต้องเพิ่มทีละ {step.toLocaleString()} บาทขึ้นไป</small>
+  type="number"
+  step="any"
+  min={current + step}
+  value={bidPrice}
+  onChange={(e) => setBidPrice(e.target.value)}
+  className="form-control"
+  placeholder={`เช่น ${(Number(bids[0]?.bid_price ?? auction.start_price) + step).toLocaleString()}`}
+/>
+<small className="text-muted">
+  ต้องมากกว่าราคาปัจจุบันอย่างน้อย {step.toLocaleString()} บาท
+</small>
               </div>
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={() => setShowModal(false)}>ยกเลิก</button>
