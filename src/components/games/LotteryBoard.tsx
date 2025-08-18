@@ -144,43 +144,46 @@ export default function LotteryBoard() {
   };
 
   const boardButtons = useMemo(() => {
-    const buttons: JSX.Element[] = [];
-    for (let i = 0; i < 100; i++) {
-      const label = i.toString().padStart(2, '0');
-      const entry = selectedNumbers[i];
-      const takenBy = entry?.username;
-      const avatar = entry?.avatar_url;
-      const btnClass = takenBy
-        ? 'm-1 px-2 py-1 rounded text-xs font-bold border bg-gray-700 text-white'
-        : 'm-1 px-2 py-1 rounded text-xs font-bold border bg-white/80 backdrop-blur text-black hover:bg-yellow-300';
+  const buttons: JSX.Element[] = [];
+  for (let i = 0; i < 100; i++) {
+    const label = i.toString().padStart(2, '0');
+    const entry = selectedNumbers[i];
+    const takenBy = entry?.username;
+    const avatar = entry?.avatar_url;
+    const username = entry?.username; // ใช้ username แทน
+    const btnClass = takenBy
+      ? 'm-1 px-2 py-1 rounded text-xs font-bold border bg-gray-700 text-white'
+      : 'm-1 px-2 py-1 rounded text-xs font-bold border bg-white/80 backdrop-blur text-black hover:bg-yellow-300';
 
-      const isDisabled = !!takenBy || !canUserSelect();
+    const isDisabled = !!takenBy || !canUserSelect();
 
-      buttons.push(
-        <button
-          key={i}
-          onClick={() => handleSelect(i)}
-          disabled={isDisabled}
-          className={btnClass}
-        >
-          {label}
-          {takenBy && avatar && (
-            <div className="mt-1 flex items-center justify-center">
-              <img
-                src={avatar || '/icons/default.png'}
-                alt="avatar"
-                width="36"
-                height="36"
-                loading="lazy"
-                className="rounded-full object-cover"
-              />
-            </div>
-          )}
-        </button>
-      );
-    }
-    return buttons;
-  }, [selectedNumbers, username]);
+    buttons.push(
+      <button
+        key={i}
+        onClick={() => handleSelect(i)}
+        disabled={isDisabled}
+        className={btnClass}
+      >
+        {label}
+        {takenBy && avatar && (
+          <div className="mt-1 flex items-center justify-center">
+            <img
+              src={avatar || '/icons/default.png'}
+              alt="avatar"
+              width="36"
+              height="36"
+              loading="lazy"
+              className="rounded-full object-cover"
+            />
+            <div className="text-xs text-center mt-1">{username}</div> {/* แสดง username */}
+          </div>
+        )}
+      </button>
+    );
+  }
+  return buttons;
+}, [selectedNumbers, username]);
+
 
   const getUserGroupText = () => {
     if (!username) return null;
