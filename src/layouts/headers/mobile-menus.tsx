@@ -205,7 +205,7 @@ const MobileMenus = ({ setOpenMenu, openMenu }: any) => {
               )}
 
               <li><Link href="/profile">🛠 แก้ไขโปรไฟล์</Link></li>
-              <li><Link href="/games/lotto-bid">🆕 รวมเล่นเกมส์</Link></li>
+              <li><Link href="/games/LotteryBoard">🆕 เช็คผลเล่นเกมส์</Link></li>
               <li>
                 <button
                   onClick={async () => {
