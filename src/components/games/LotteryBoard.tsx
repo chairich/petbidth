@@ -60,12 +60,13 @@ export default function LotteryBoard() {
           const message = getResult(r.number);
           return (
             <div key={idx} className="w-full max-w-md bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 rounded-xl p-6 shadow-2xl transform hover:scale-105 transition duration-300">
-              <div className="flex items-center space-x-4">
-                <div className="bg-white rounded-full w-16 h-16 flex items-center justify-center text-black font-bold text-lg">
+              <div className="flex items-center space-x-6">
+                {/* ตัวเลขเด่น ๆ */}
+                <div className="bg-transparent rounded-full w-20 h-20 flex items-center justify-center text-white font-extrabold text-3xl border-4 border-white shadow-lg">
                   {r.number.toString().padStart(2, '0')}
                 </div>
                 <div>
-                  <p className="text-lg font-bold">{entry ? entry.username : 'ไม่มีผู้ถูกรางวัล'}</p>
+                  <p className="text-xl font-bold">{entry ? entry.username : 'ไม่มีผู้ถูกรางวัล'}</p>
                   <p className="text-sm mt-1">{message}</p>
                 </div>
               </div>
