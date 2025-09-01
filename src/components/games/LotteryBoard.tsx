@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import supabase from '@/lib/supabaseClient3';
 
 interface User {
@@ -14,20 +14,13 @@ interface LotteryData {
   user_id: string;
 }
 
-const WINNING_NUMBER = 94; // หมายเลขที่ออกสำหรับ 2 ตัว (แก้ไขตามผลจริง)
+const WINNING_NUMBER = 31; // หมายเลขที่ออกสำหรับ 2 ตัว (แก้ไขตามผลจริง)
 
 export default function LotteryBoard() {
   const [user, setUser] = useState<User | null>(null);
   const [username, setUsername] = useState<string | null>(null);
   const [selectedNumbers, setSelectedNumbers] = useState<Record<number, LotteryData>>({});
   const [loading, setLoading] = useState(true);
-
-  const getUserGroupKey = (name?: string | null) => {
-    if (!name) return null;
-    if (/^A0\d{2}$/.test(name)) return 'group1';
-    if (/^A1\d{2}$/.test(name) || /^VIP\d+$/i.test(name)) return 'group2';
-    return null;
-  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,10 +41,8 @@ export default function LotteryBoard() {
       }
 
       if (!error && lotteryData) {
-        const groupKey = getUserGroupKey(profile?.name);
-        const filtered = lotteryData.filter(item => getUserGroupKey(item.username) === groupKey);
         const mapped: Record<number, LotteryData> = {};
-        filtered.forEach((item) => {
+        lotteryData.forEach((item) => {
           mapped[item.number] = item;
         });
         setSelectedNumbers(mapped);
@@ -107,12 +98,16 @@ export default function LotteryBoard() {
       )}
 
       <div className="mt-6 flex flex-wrap justify-center">
-        {Object.values(selectedNumbers).map((entry) => (
-          <div key={entry.number} className="text-center text-white">
-            <p>{entry.username} - หมายเลข: {entry.number.toString().padStart(2, '0')}</p>
-            <p>{checkWinning(entry.number)}</p>
-          </div>
-        ))}
+        {/* แสดงผลเลขที่ลงทะเบียนไว้เรียงตามลำดับ */}
+        {[...Array(100).keys()].map((i) => {
+          const entry = selectedNumbers[i];
+          return (
+            <div key={i} className="text-center text-white">
+              <p>{entry ? `${entry.username} - หมายเลข: ${i.toString().padStart(2, '0')}` : `หมายเลข: ${i.toString().padStart(2, '0')} - ยังไม่มีการลงทะเบียน`}</p>
+              <p>{entry && checkWinning(i)}</p>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
