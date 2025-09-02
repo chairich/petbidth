@@ -188,7 +188,7 @@ const MobileMenus = ({ setOpenMenu, openMenu }: any) => {
                   <ul className="ft-dd-menu bg-gray-800 rounded shadow-md" style={{ display: navTitle === "⚙ เมนูแอดมิน" ? "block" : "none" }}>
                     <li><Link href="/admin/auctions">📢 จัดการประมูล</Link></li>
                     <li><Link href="/admin/banner">🏷 จัดการแบนเนอร์</Link></li>
-                    <li><Link href="/knowledge/admin">🧠 โพสต์บทความ</Link></li>
+                     <li><Link href="/admin/blogs/new">🧠 โพสต์บทความ</Link></li>
                     <li><Link href="/admin/users">📝 จัดการผู้ใช้</Link></li>
                   </ul>
                 </li>

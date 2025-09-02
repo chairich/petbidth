@@ -32,7 +32,7 @@ const menu_data:DataType[] = [
 	{
 		id: 6,
 		title: "ชุมชนแบ่งบัน",
-		link: "/knowledge",
+		link: "/blogs",
 		has_dropdown: false,
 	},
 ];

@@ -239,7 +239,7 @@ const NavMenu = () => {
             <ul className="ft-dd-menu">
               <li><Link href="/admin/auctions">📢 จัดการประมูล</Link></li>
               <li><Link href="/vip-shop/edit-shop/">🏷 จัดการแบนเนอร์</Link></li>
-              <li><Link href="/knowledge/admin">🧠 โพสต์บทความ</Link></li>
+              <li><Link href="/admin/blogs/new">🧠 โพสต์บทความ</Link></li>
               <li><Link href="/admin/users">📝 จัดการผู้ใช้</Link></li>
             </ul>
           </li>
