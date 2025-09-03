@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabaseClient';
 const LoginArea = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = "/games/lotto-bid"; // ล็อกอินแล้วไปหน้านี้เลย
+  const redirectTo = "/"; // ล็อกอินแล้วไปหน้านี้เลย
 
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
