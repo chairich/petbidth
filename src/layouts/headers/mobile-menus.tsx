@@ -190,6 +190,7 @@ const MobileMenus = ({ setOpenMenu, openMenu }: any) => {
                     <li><Link href="/admin/banner">🏷 จัดการแบนเนอร์</Link></li>
                      <li><Link href="/admin/blogs/new">🧠 โพสต์บทความ</Link></li>
                     <li><Link href="/admin/users">📝 จัดการผู้ใช้</Link></li>
+                    <li><Link href="/auction-list">📝 จัดการฝากประมูล</Link></li>
                   </ul>
                 </li>
               )}

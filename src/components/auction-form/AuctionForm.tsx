@@ -70,7 +70,7 @@ const AuctionForm = () => {
 
         if (error) {
           console.error('เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ:', error.message);
-          setErrorMessage('เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ');
+          setErrorMessage(`เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ: ${error.message}`);
           uploadError = true;
           break;
         }
@@ -99,7 +99,7 @@ const AuctionForm = () => {
 
       if (error) {
         console.error('เกิดข้อผิดพลาดในการบันทึกข้อมูล:', error.message);
-        setErrorMessage('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+        setErrorMessage(`เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${error.message}`);
       } else {
         alert('ข้อมูลของคุณถูกส่งไปยังแอดมินแล้ว!');
         setImages([]);

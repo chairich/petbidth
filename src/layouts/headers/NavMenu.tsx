@@ -241,6 +241,7 @@ const NavMenu = () => {
               <li><Link href="/vip-shop/edit-shop/">🏷 จัดการแบนเนอร์</Link></li>
               <li><Link href="/admin/blogs/new">🧠 โพสต์บทความ</Link></li>
               <li><Link href="/admin/users">📝 จัดการผู้ใช้</Link></li>
+              <li><Link href="/auction-list">📝 จัดการฝากประมูล</Link></li>
             </ul>
           </li>
         )}
@@ -298,7 +299,7 @@ const NavMenu = () => {
         ) : (
           <>
             <li><Link href="/login">🔐 เข้าสู่ระบบ</Link></li>
-            <li><Link href="/">🆕 สมัครสมาชิก</Link></li>
+            <li><Link href="/register">🆕 สมัครสมาชิก</Link></li>
           </>
         )}
       </ul>
